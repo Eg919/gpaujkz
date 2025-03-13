@@ -8,7 +8,7 @@
         <div class="flex items-center space-x-1">
           <router-link to="/admin" class="text-blue-500 flex items-center">
             <i class="fas fa-arrow-left text-lg"></i>
-            <span class="ml-1 text-xs sm:text-sm md:text-base hidden sm:inline">Retour</span>
+            <span class="ml-1 text-xs sm:text-sm md:text-base hidden sm:inline">Retourner</span>
           </router-link>
         </div>
         <!-- Titre centralisé -->
