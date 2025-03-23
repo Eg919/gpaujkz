@@ -95,7 +95,7 @@
         <option value="Chef-de-service">Chef-de-service</option>
         <option value="Responsable-de-structure">Responsable-de-structure</option>
         <option value="Point-Focale">Point Focale</option>
-        <option value="Ordonateur">Ordonateur</option>
+        <option value="Ordonnateur">Ordonnateur</option>
         <option value="Gestionnaire_Utilisateur">Gestionnaire Utilisateur</option>
       </select>
     </td>

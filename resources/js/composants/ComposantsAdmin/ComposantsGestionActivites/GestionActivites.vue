@@ -556,7 +556,7 @@
         this.userInfo = response.data;
         this.isPointFocal=this.userInfo.role === 'Point-Focale';
         this.isAdmin = this.userInfo.role === 'Administrateur';
-        this.isInvite = this.userInfo.role === 'Ordonateur';
+        this.isInvite = this.userInfo.role === 'Ordonnateur';
       } catch (error) {
         this.showAlert('Erreur lors de la récupération des informations utilisateur :', false);
       }

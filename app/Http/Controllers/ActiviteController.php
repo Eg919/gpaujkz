@@ -853,7 +853,7 @@ public function confirmationPresi(Request $request, $id)
 
         if ($user) {
             $article ='Le';
-            if ($user->role =='Administrateur'|| $user->role =='Ordonateur') {
+            if ($user->role =='Administrateur'|| $user->role =='Ordonnateur') {
                 $article = 'La';
             }
             $messageContent = "Bonjour Monsieur/Madame $article {$user->role}, votre activité '{$activite->libelle}' a été validée.";

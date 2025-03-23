@@ -345,7 +345,7 @@ export default {
 
     this.userInfo = response.data;
     this.isAdmin = this.userInfo.role === 'Administrateur';
-    this.isInvite = this.userInfo.role === 'Ordonateur';
+    this.isInvite = this.userInfo.role === 'Ordonnateur';
     this.isPointFocal = this.userInfo.role === 'Point-Focale';
     this.isChefService = this.userInfo.role === 'Chef-de-service';
     this.isResponsable = this.userInfo.role === 'Responsable-de-structure';

@@ -36,7 +36,7 @@
           <option  value="Chef-de-service">Chef-de-service</option>
           <option  value="Responsable-de-structure">Responsable-de-structure</option>
           <option  value="Point-Focale">Point Focale</option>
-          <option  value="Ordonateur">Ordonateur</option>
+          <option  value="Ordonnateur">Ordonnateur</option>
           <option  value="Administrateur_DSI">Administrateur_DSI</option>
         </select>
         <span v-if="errors.role" class="text-red-500 text-xs sm:text-sm">{{ errors.role }}</span>
