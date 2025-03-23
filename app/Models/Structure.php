@@ -24,6 +24,7 @@ class Structure extends Model
         'libelle_structure',
         'sigle',
         'etat',
+        'masque',
     ];
     public function activite()
     {

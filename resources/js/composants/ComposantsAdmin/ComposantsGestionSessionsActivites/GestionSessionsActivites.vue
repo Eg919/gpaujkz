@@ -50,6 +50,8 @@
             <tr>
               <th class="border border-gray-300 px-4 py-2 text-left">#</th>
               <th class="border border-gray-300 px-4 py-2 text-left">Année</th>
+              <th class="border border-gray-300 px-4 py-2 text-left">Date début</th>
+              <th class="border border-gray-300 px-4 py-2 text-left">Date fin</th>
               <th class="border border-gray-300 px-4 py-2 text-left">État</th>
               <th class="border border-gray-300 px-4 py-2 text-left">Actions</th>
             </tr>
@@ -65,13 +67,35 @@
                   class="bg-transparent px-4 py-2 m-0 w-full text-gray-900 dark:text-gray-200 dark:bg-gray-800 focus:ring focus:ring-blue-300 rounded-md"
                   @input="validateYear(session)" 
                   placeholder="Entrez l'année" 
-                />
+                  :disabled="editableRowId !== session.id"
+                  />
+              </td>
+              <td class="border border-gray-300 px-4 py-1">
+                <input 
+                  v-model="session.date_debut" 
+                  type="date" 
+                  id="date_debut" 
+                  required 
+                  class="bg-transparent px-4 py-2 m-0 w-full text-gray-900 dark:text-gray-200 dark:bg-gray-800 focus:ring focus:ring-blue-300 rounded-md"
+                  :disabled="editableRowId !== session.id"
+                  />
+              </td>
+              <td class="border border-gray-300 px-4 py-1">
+                <input 
+                  v-model="session.date_fin" 
+                  type="date" 
+                  id="date_fin" 
+                  required 
+                  class="bg-transparent px-4 py-2 m-0 w-full text-gray-900 dark:text-gray-200 dark:bg-gray-800 focus:ring focus:ring-blue-300 rounded-md"
+                  :disabled="editableRowId !== session.id"
+                  />
               </td>
               <td class="border border-gray-300 px-4 py-1">
                 <select 
                   v-model="session.etat" 
                   class="bg-transparent px-4 py-2 m-0 w-full text-gray-900 dark:text-gray-200 dark:bg-gray-800 focus:ring focus:ring-blue-300 rounded-md"
-                >
+                  :disabled="editableRowId !== session.id"
+                  >
                 <option value="Ouvert">Ouvert</option>
                 <option value="En_Cours">En_Cours</option>
                 <option value="Clôturé">Clôturé</option>
@@ -79,6 +103,16 @@
               </td>
               <td class="border border-gray-300 px-4 py-1 flex items-center space-x-2">
                 <button 
+                    v-if="editableRowId !== session.id"
+                    @click="editableRowId = session.id" 
+                    class="text-yellow-500 px-3 py-1 rounded hover:bg-yellow-100 flex flex-col items-center justify-center"
+                    title="Modifier"
+                  >
+                    <i class="fas fa-edit"></i>
+                    <span class="text-xs hidden sm:inline">Modifier</span>
+                  </button>
+                <button 
+                 v-if="editableRowId === session.id"
                   @click="confirmerModification(session)" 
                   class="text-green-700 py-1 rounded hover:bg-green-200 flex flex-col items-center justify-center"
                   :disabled="isLoading" 
@@ -87,7 +121,25 @@
                   <i class="fas fa-check"></i>
                   <span class="text-xs hidden sm:inline">Valider</span>
                 </button>
+                 <!-- Bouton Annuler -->
+                 <button 
+                    v-if="editableRowId === session.id"
+                    @click="annulerModification" 
+                    class="text-gray-700 px-3 py-1 rounded hover:bg-red-200  flex flex-col items-center justify-center"
+                    title="Annuler"
+                  >
+                    <i class="fas fa-times"></i>
+                    <span class="text-xs hidden sm:inline">Annuler</span>
+                  </button>
+                  <button 
+                  v-if="editableRowId !== session.id"
+                  @click="supprimerSession(session.id)"  
+                    class=" text-red-700 px-3 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center">
+                    <i class="fas fa-trash-alt"></i> <!-- Icône de suppression -->
+                    <span class="text-red-700 text-xs hidden sm:inline">Supprimer</span>
+                  </button>
                 <button
+                v-if="editableRowId !== session.id"
                   @click="redirectToActivite(session.id)"
                   title="Historique"
                   class="text-red-700 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center"
@@ -155,6 +207,7 @@ export default {
       isLoading: false,
       alertMessage: '',
       isSuccess: false,
+      editableRowId: null,
       csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
     };
   },
@@ -216,6 +269,8 @@ export default {
             `/api/sessions-activites/${session.id}`,
             {
               annee: session.annee,
+              date_debut: session.date_debut,
+              date_fin: session.date_fin,
               etat: session.etat,
             },
             {
@@ -229,6 +284,7 @@ export default {
             this.showAlert('Modifications enregistrées avec succès!', true);
             await this.fetchSessions();
           }
+           this.editableRowId = null; // Quitte le mode édition après validation
         } catch (error) {
           console.error('Erreur lors de la modification de la session:', error);
           this.showAlert('Erreur lors de la modification de la session. Veuillez réessayer.', false);
@@ -237,6 +293,13 @@ export default {
         }
       }
     },
+    annulerModification() {
+      if (!confirm("Êtes-vous sûr de vouloir annuler cette modification ?")) {
+        console.log('Soumission annulée par l\'utilisateur.');
+        return; // Sort de la fonction si l'utilisateur annule.
+      }
+    this.editableRowId = null; // Annule l'édition et rétablit les valeurs initiales
+  },
     validateYear(session) {
       if (session.annee && isNaN(session.annee)) {
         alert('Veuillez entrer une année valide.');
@@ -249,6 +312,17 @@ export default {
       setTimeout(() => {
         this.alertMessage = '';
       }, 2000);
+    },
+    async supprimerSession(id) {
+      if (!confirm("Voulez-vous vraiment supprimer cette session ?")) return;
+
+      try {
+        const response = await axios.delete(`/api/sessions/supprimer/${id}`);
+        this.message = response.data.message;
+        this.fetchSessions();
+      } catch (error) {
+        console.error("Erreur lors de la suppression :", error);
+      }
     },
   },
   mounted() {

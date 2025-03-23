@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\ObjectifStrategique;
 use App\Models\AxeStrategique;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -68,5 +68,16 @@ class AxeStrategiqueController extends Controller
             $axe->update($validated);
 
             return response()->json($axe);
+        }
+        public function supprimerAxe($id)
+        {
+            $axe = AxeStrategique::findOrFail($id);
+            $objectifs = ObjectifStrategique::where('axe_strategique_id', $id)->get();
+            if ($objectifs->count() > 0) {
+                return response()->json(['message' => 'Impossible de supprimer cet axe stratégique car il contient des objectifs stratégiques'], 400);
+            }
+            $axe->delete();
+
+            return response()->json(['message' => 'Axe stratégique supprimé avec succès']);
         }
 }

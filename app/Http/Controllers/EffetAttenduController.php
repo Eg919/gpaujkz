@@ -2,9 +2,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\EffetAttendu;
-use App\Models\ObjectifStrategique;
 use Illuminate\Http\Request;
 use App\Models\AxeStrategique;
+use App\Models\Activite;
 
 class EffetAttenduController extends Controller
 {
@@ -71,5 +71,17 @@ class EffetAttenduController extends Controller
         $effet->update($validated);
 
         return response()->json($effet);
+    }
+    public function supprimerEffet($id)
+    {
+        $effet = EffetAttendu::findOrFail($id);
+$activites=Activite::where('effet_attendu_id',$id)->get();
+
+if(count($activites)>0){
+    return response()->json(['message' => 'Impossible de supprimer cet effet attendu car il est associé à des activités'], 400);
+}
+        $effet->delete();
+
+        return response()->json(['message' => 'Effet attendu supprimé avec succès.']);
     }
 }

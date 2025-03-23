@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Models\Tache;
 use App\Models\Activite;
 use App\Models\Indicateur;
 use App\Models\SessionActivite;
@@ -20,9 +21,9 @@ class ActiviteController extends Controller
         try {
             $activite = Activite::findOrFail($id);
     
-            if ($activite->etat_activite !== 'en-attente') {
+            if ($activite->etat_activite !== 'en-attente'||$activite->etat_activite !== 'en-cours') {
                 return response()->json([
-                    'message' => 'Seules les activités en attente peuvent être reconduites.',
+                    'message' => 'Seules les activités en attente ou en cours peuvent être reconduites.',
                 ], 400);
             }
     
@@ -36,8 +37,6 @@ class ActiviteController extends Controller
     
             $activite->reconduir = $sessionEnCours->annee;
             $activite->save();
-            $users = User::where('id', '=', $activite->user_id)->with('structure:id,sigle')
-            ->first();
 
             NotificationActivite::create([
                 'message'     => "L'activité '{$activite->libelle}' a été reconduit.",
@@ -269,6 +268,7 @@ public function mettreAJourEtatFinancier(Request $request, $id)
         // Compter les activités validées dans cette session
         $count = Activite::where('sessions_id', $sessionEnCours->id)
             ->where('etat_slection', 'Validé')
+            ->where('confirmation_presi', 1)
             ->orWhere('reconduir', $sessionEnCours->annee)
             ->count();
         return response()->json(['count' => $count], 200);
@@ -342,6 +342,7 @@ public function mettreAJourEtatFinancier(Request $request, $id)
             'etat_session' => $session->etat, // Ajouter l'état de la session
             'reconduir'=>$activite->reconduir,
             'etat_slection'=>$activite->etat_slection,
+            'confirmation_presi'=>$activite->confirmation_presi,
         ];
     });
 
@@ -404,6 +405,7 @@ public function mettreAJourEtatFinancier(Request $request, $id)
             'etat_session' => $session->etat, // Ajouter l'état de la session
             'reconduir'=>$activite->reconduir,
             'etat_slection'=>$activite->etat_slection,
+            'confirmation_presi'=>$activite->confirmation_presi,
         ];
     });
 
@@ -444,6 +446,7 @@ public function getActivitesBySessionPa(Request $request)
             ->orWhere('reconduir', $session->annee); // Condition pour reconduir égal à l'année de la session
     })
     ->where('etat_slection', 'Validé') // Filtrer uniquement les activités soumises
+    ->where('confirmation_presi', 1)
     ->with('structure') // Charger la relation 'structure'
     ->get();
 
@@ -461,6 +464,7 @@ public function getActivitesBySessionPa(Request $request)
             'etat_session' => $session->etat, // Ajouter l'état de la session
             'reconduir'=>$activite->reconduir,
             'etat_slection'=>$activite->etat_slection,
+            'confirmation_presi'=>$activite->confirmation_presi,
         ];
     });
 
@@ -495,8 +499,8 @@ public function getActivitesBySessionStructure(Request $request)
     $activites = Activite::where(function ($query) use ($session, $user) {
         $query->where('sessions_id', $session->id)
               ->where('structure_id', $user->structure_id)
-              ->where('etat_slection', 'Validé'); // Activités validées de la structure
-
+              ->where('etat_slection', 'Validé')// Activités validées de la structure
+              ->where('confirmation_presi', 1);
         $query->orWhere(function ($subQuery) use ($session, $user) {
             $subQuery->where('reconduir', $session->annee)
                      ->where('structure_id', $user->structure_id)
@@ -518,6 +522,7 @@ public function getActivitesBySessionStructure(Request $request)
             'etat_session' => $session->etat,
             'reconduir' => $activite->reconduir,
             'etat_slection' => $activite->etat_slection,
+            'confirmation_presi' => $activite->confirmation_presi,
         ];
     });
 
@@ -577,6 +582,12 @@ public function getActivitesBySessionStructure(Request $request)
         }
 
         \Log::info('Création de l\'activité.');
+        $sessionEnCours = SessionActivite::where('etat', 'Ouvert')->first();
+        $dateJour = Carbon::now();
+        $dateJourSuivant = $dateJour->addDay(); // Ajoute 1 jour
+        if ($sessionEnCours->date_fin < $dateJourSuivant && $validated['formactivite']['hort_progamme'] == 0) {    
+            return response()->json(['message' => 'La date limite de soumission des activités est dépassée.'], 400);
+        }
         $activite = Activite::create([
             'user_id' => $user->id,
             'structure_id' => $validated['formactivite']['structure_id'],
@@ -636,20 +647,7 @@ public function getActivitesBySessionStructure(Request $request)
 
         $activite->etat_slection = $request->input('etat_slection');
         $activite->save();
-        if($activite->etat_slection== 'Validé'){
-            $user = Auth::user();
-            $messageContent = "Bonjour Monsieur/Madame {$user->nom}, votre activité  $activite->libelle été validé .";
-
-            EmailService::sendEmail($user->email, $messageContent);
-            // Créer une notification pour chaque utilisateur
-                NotificationActivite::create([
-                    'message'     => "L'activité '{$activite->libelle}' a été valider.",
-                    'lu'          => 0,  // Notification non lue par défaut
-                    'user_id'     => $activite->user_id,
-                    'activite_id' => $activite->id,
-                ]);
-            
-        }
+        
         return response()->json($activite);
     }
     public function update(Request $request, $id)
@@ -753,6 +751,7 @@ public function getActivitesByEffetAttendu($effetAttenduId)
         ->where(function ($query) use ($anneeSessionEnCours, $sessionEnCours) {
             $query->where('sessions_id', $sessionEnCours->id) // Activités de la session en cours
                   ->where('etat_slection', 'Validé')           // Filtrées par etat_slection "Validé"
+                  ->where('confirmation_presi', 1)
                   ->orWhere('reconduir', $anneeSessionEnCours); // Activités reconduites à l'année de la session
         })
         ->with(['taches', 'indicateurs', 'structure', 'session',]) // Charger les relations nécessaires
@@ -776,16 +775,17 @@ public function getActivitesByEffetAttenduStructure($effetAttenduId)
     if (!$sessionEnCours) {
         return response()->json(['message' => 'Aucune session en cours trouvée'], 404);
     }
-    $user = Auth::user();
+    
     // Obtenir l'année de la session en cours
     $anneeSessionEnCours = $sessionEnCours->annee;
-
+    $user = Auth::user();
     // Récupérer les activités de la session en cours ou celles reconduites à l'année de la session en cours
     $activites = Activite::where('effets_attendus_id', $effetAttenduId)
-        ->where(function ($query) use ($anneeSessionEnCours, $sessionEnCours) {
+        ->where(function ($query) use ($anneeSessionEnCours, $sessionEnCours,$user ) {
             $query->where('sessions_id', $sessionEnCours->id) // Activités de la session en cours
                   ->where('etat_slection', 'Validé')  // Filtrées par etat_slection "Validé"
-                  ->where('structure_id', $user->structure_id)         
+                  ->where('structure_id', $user->structure_id)
+                  ->where('confirmation_presi', 1)         
                   ->orWhere('reconduir', $anneeSessionEnCours); // Activités reconduites à l'année de la session
         })
         ->with(['taches', 'indicateurs', 'structure', 'session',]) // Charger les relations nécessaires
@@ -817,6 +817,7 @@ public function getActivitesByEffetAttenduTrimestre($effetAttenduId)
         ->where(function ($query) use ($anneeSessionEnCours, $sessionEnCours) {
             $query->where('sessions_id', $sessionEnCours->id) // Activités de la session en cours
                   ->where('etat_slection', 'Validé')           // Filtrées par etat_slection "Validé"
+                  ->where('confirmation_presi', 1)
                   ->orWhere('reconduir', $anneeSessionEnCours); // Activités reconduites à l'année de la session
         })
         
@@ -832,6 +833,136 @@ public function getActivitesByEffetAttenduTrimestre($effetAttenduId)
     return response()->json($activites);
 }
 
+public function confirmationPresi(Request $request, $id)
+{
+    $activite = Activite::find($id);
+
+    if (!$activite) {
+        return response()->json(['message' => 'Activité non trouvée.'], 404);
+    }
+
+    // Vérifier si le champ est envoyé, sinon mettre 0 par défaut
+    $activite->confirmation_presi = (int) $request->input('confirmation_presi', 1);
+
+    if (!$activite->save()) {
+        return response()->json(['message' => 'Erreur lors de la mise à jour de l\'activité.'], 500);
+    }
+
+    if ($activite->confirmation_presi == 1) {
+        $user = User::find($activite->user_id);
+
+        if ($user) {
+            $article ='Le';
+            if ($user->role =='Administrateur'|| $user->role =='Ordonateur') {
+                $article = 'La';
+            }
+            $messageContent = "Bonjour Monsieur/Madame $article {$user->role}, votre activité '{$activite->libelle}' a été validée.";
+
+            try {
+                EmailService::sendEmail($user->email, $messageContent);
+            } catch (\Exception $e) {
+                return response()->json(['message' => 'Erreur lors de l\'envoi de l\'email.', 'error' => $e->getMessage()], 500);
+            }
+
+            NotificationActivite::create([
+                'message'     => "L'activité '{$activite->libelle}' a été validée.",
+                'lu'          => 0,
+                'user_id'     => $activite->user_id,
+                'activite_id' => $activite->id,
+            ]);
+        }
+    }
+
+    return response()->json(['message' => 'Activité mise à jour avec succès.', 'activite' => $activite]);
+}
 
 
+//Recuperer les activités validées
+public function getActivitesValidees()
+{
+    $sessionEnCours = SessionActivite::where('etat', 'Ouvert')->first();
+    
+    if (!$sessionEnCours) {
+        return response()->json(['message' => 'Aucune session en cours trouvée.'], 404);
+    }
+
+    $activites = Activite::where(function ($query) use ($sessionEnCours) {
+            $query->where('sessions_id', $sessionEnCours->id)
+                  ->where('etat_slection', 'Validé');
+        })
+        ->orWhere('reconduir', $sessionEnCours->annee)
+        ->get();
+
+    return response()->json($activites);
+}
+
+public function tousConfirmer()
+{
+    // Récupérer la session en cours
+    $sessionEnCours = SessionActivite::where('etat', 'Ouvert')->first();
+    if (!$sessionEnCours) {
+        return response()->json(['message' => 'Aucune session en cours trouvée.'], 404);
+    }
+
+    // Récupérer les activités validées de cette session
+    $activites = Activite::where('sessions_id', $sessionEnCours->id)
+        ->where('etat_slection', 'Validé')
+        ->where('confirmation_presi', '=', null)
+        ->get();
+
+    if ($activites->isEmpty()) {
+        return response()->json(['message' => 'Aucune activité validée trouvée.'], 404);
+    }
+
+    DB::beginTransaction(); // Démarrer une transaction
+
+    try {
+        foreach ($activites as $activite) {
+            $activite->confirmation_presi = 1;
+            $activite->save();
+
+            if ($activite->user) {
+                $messageContent = "Bonjour {$activite->user->nom}, votre activité '{$activite->libelle}' a été validée.";
+
+                try {
+                    EmailService::sendEmail($activite->user->email, $messageContent);
+                } catch (\Exception $e) {
+                    // Enregistrer l'erreur sans interrompre la boucle
+                    \Log::error("Erreur d'envoi d'email pour {$activite->user->email}: " . $e->getMessage());
+                }
+
+                // Créer une notification pour chaque utilisateur
+                NotificationActivite::create([
+                    'message'     => "L'activité '{$activite->libelle}' a été validée.",
+                    'lu'          => 0, // Notification non lue par défaut
+                    'user_id'     => $activite->user_id,
+                    'activite_id' => $activite->id,
+                ]);
+            }
+        }
+
+        DB::commit(); // Valider la transaction
+    } catch (\Exception $e) {
+        DB::rollBack(); // Annuler la transaction en cas d'erreur
+        return response()->json(['message' => 'Une erreur est survenue lors de la confirmation des activités.', 'error' => $e->getMessage()], 500);
+    }
+
+    return response()->json(['message' => 'Toutes les activités ont été confirmées.', 'activites' => $activites]);
+}
+
+public function supprimerActivite($id)
+{
+    $activite = Activite::find($id);
+    $taches = Tache::where('activite_id', $id)->get();
+// Vérifier si des tâches sont associées à l'activité
+    if (!$taches->isEmpty() ) {
+        return response()->json(['message' => 'Impossible de supprimer l\'activité car des tâches y sont associées.'], 400);
+    }
+if ($activite->confirmation_presi == 1) {
+    return response()->json(['message' => 'Impossible de supprimer l\'activité car elle a été validée.'], 400);
+}
+    $activite->delete();
+
+    return response()->json(['message' => 'Activité supprimée avec succès.'], 200);
+}
 }

@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('users', callback: function (Blueprint $table) {
             $table->id();
-            $table->string('nom');
-            $table->string('prenom');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('role');
-            $table->string('etat');
+            $table->string('etat')->default('Actif')->nullable(); // Ajout d'une valeur par défaut
+            $table->integer('masque')->default(0); // Ajout d'une valeur par défaut
             $table->foreignId('structure_id')->constrained()->onDelete('cascade');
             $table->rememberToken();
             $table->timestamps();

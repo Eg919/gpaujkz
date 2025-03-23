@@ -42,16 +42,6 @@
             placeholder="Rechercher une session..." 
             class=" border border-gray-300 px-4 py-2 rounded shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
           />
-          <div class="mx-2">
-            <!-- <input type="file" @change="handleFileUpload" class="p-2 border rounded w-full md:w-auto mx-2">
-            <button 
-              @click="uploadFile" 
-              :disabled="loading"
-              class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 w-full md:w-auto">
-              {{ loading ? 'Importation en cours...' : 'Importer Activités' }}
-            </button> -->
-          </div>
-          
         </div>
 
         <!-- Tableau -->
@@ -80,7 +70,7 @@
               >
                 <td class="border border-gray-300 px-4 py-1">
                   <p 
-                    v-if="activite.etat_slection === 'Validé'" 
+                    v-if="activite.etat_slection === 'Validé' && activite.confirmation_presi" 
                     @click="redirectToActivite(activite.id)" 
                     class="font-medium text-gray-900 dark:text-white"
                   >
@@ -92,7 +82,7 @@
                   class="border border-gray-300 px-4 py-2"
                   :class="{
                     'text-red-700': activite.etat_activite === 'abendoner',
-                    'text-yellow-700': activite.etat_activite === 'Ouvert',
+                    'text-yellow-700': activite.etat_activite === 'en-cours',
                     'text-green-700': activite.etat_activite === 'terminer'
                   }"
                 >
@@ -135,8 +125,15 @@
                     />
                     <span v-if="isResponsable ||isAdmin" class="text-xs hidden sm:inline">Soumettre</span>
                   </button>
+                  <button 
+                  v-if ="!activite.soumi "
+                      @click="supprimerActivite(activite.id)" 
+                      class=" text-red-700 px-3 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center">
+                      <i class="fas fa-trash-alt"></i> <!-- Icône de suppression -->
+                      <span class="text-red-700 text-xs hidden sm:inline">Supprimer</span>
+                  </button>
                   <button
-                    v-if="activite.etat_slection === 'Validé'" 
+                    v-if="activite.etat_slection === 'Validé' && activite.confirmation_presi" 
                     @click="redirectToActivite(activite.id)"
                     class="text-green-700 px-2 py-1 rounded hover:bg-green-200 flex flex-col items-center justify-center"
                     title="Planifier les activités"
@@ -367,6 +364,25 @@ soumissionForme(activite) {
   });
 
 },
+    async supprimerActivite(id) {
+      if (!confirm('Êtes-vous sûr de vouloir supprimer cette activité?')) {
+        console.log('Suppression annulée par l\'utilisateur.');
+        return;
+      }
+
+      try {
+        await axios.delete(`/api/activites/${id}/supprimer`, {
+          headers: {
+            'X-XSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          }
+        });
+        this.fetchActivites();
+        this.showAlert('Activité supprimée avec succès.', true);
+      } catch (error) {
+        console.error('Erreur lors de la suppression de l\'activité:', error);
+        this.showAlert('Une erreur est survenue lors de la suppression de l\'activité.', false);
+      }
+    },
 showAlert(message, success) {
       this.alertMessage = message;
       this.isSuccess = success;

@@ -36,7 +36,7 @@
               'bg-green-200': activite.etat_slection === 'Validé',
               'ring-2 ring-blue-400': activite.id === activiteIdSelectionne,
             }"
-            @click="redirectToActivite(activite.id)"
+            @click="redirectToActivite(activite)"
           >
             <p class="text-sm md:text-base text-gray-600">{{ activite.structure_sigle }}</p>
             <p class="font-bold text-base md:text-lg truncate">
@@ -100,10 +100,13 @@
   
     },
     methods: {
-       redirectToActivite(id) {
-      this.$router.push({ name: 'GestionActivites', params: { id } });
-
-    },
+      redirectToActivite(activite) {
+    if (activite.etat_session === 'Ouvert' || activite.etat_session === 'En_Cours') {
+        this.$router.push({ name: 'GestionActivites', params: { id: activite.id } });
+    } else {
+        this.showAlert('Session Clôturée, impossible d\'accéder à l\'interface de planification.', false);
+    }
+},
  
       async fetchActivites(sessionsId) {
         if (!sessionsId) {

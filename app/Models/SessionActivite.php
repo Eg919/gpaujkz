@@ -14,6 +14,8 @@ class SessionActivite extends Model
     protected $fillable = [
         'annee',
         'etat',
+        'date_debut',
+        'date_fin',
         'plan_strategiques_id',
     ];
     public function activite()

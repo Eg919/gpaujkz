@@ -176,7 +176,7 @@
                 <p class="text-sm text-gray-600 truncate">{{ activite.structure_sigle }}</p>
                 <p class="font-bold truncate">{{ activite.libelle || 'Libellé indisponible' }}</p>
                 <!-- Affichage conditionnel -->
-                <div v-if="activite.etat_session === 'Ouvert'" class="mt-2">
+                <div v-if="activite.etat_session === 'Ouvert'" class="mt-2 flex items-center space-x-4">
                   <select
                     v-model="activite.etat_slection"
                     class="border border-gray-300 rounded px-4 py-2 mt-2"
@@ -187,7 +187,15 @@
                     <option v-if="!isChefService" value="Validé">Validée</option>
                     <option value="Rejeté">Rejeté</option>
                   </select>
+                  <button 
+                      v-if="activite.etat_slection === 'Rejeté'"
+                      @click="supprimerActivite(activite.id)" 
+                      class=" text-red-700 px-3 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center">
+                      <i class="fas fa-trash-alt"></i> <!-- Icône de suppression -->
+                      <span class="text-red-700 text-xs hidden sm:inline">Supprimer</span>
+                  </button>
                 </div>
+                
                 <div v-else class="flex justify-between items-center mt-2">
                   <!-- Message "Session Clôturée" -->
                   <p class="text-gray-500">Session Clôturée</p>
@@ -214,6 +222,7 @@
                        <span v-else>Reconduit</span>
                      
                     </label>
+                    
                   </div>
               </div>
               </div>
@@ -274,6 +283,7 @@ export default {
       showFormulaire: false,
       sessionsId: null,
       isChefService:false,
+      isAdmin: false,
       userInfo: null,
       csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
     };
@@ -388,6 +398,25 @@ export default {
         this.showAlert('Erreur lors de la récupération des activités.', false);
       }
     },
+    async supprimerActivite(id) {
+      if (!confirm('Êtes-vous sûr de vouloir supprimer cette activité?')) {
+        console.log('Suppression annulée par l\'utilisateur.');
+        return;
+      }
+
+      try {
+        await axios.delete(`/api/activites/${id}/supprimer`, {
+          headers: {
+            'X-XSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          }
+        });
+        this.activites = this.activites.filter((activite) => activite.id !== id);
+        this.showAlert('Activité supprimée avec succès.', true);
+      } catch (error) {
+        console.error('Erreur lors de la suppression de l\'activité:', error);
+        this.showAlert('Une erreur est survenue lors de la suppression de l\'activité.', false);
+      }
+    },
     async fetchSessions() {
       try {
         const response = await axios.get('/api/sessions-activites');
@@ -438,7 +467,7 @@ export default {
         Authorization: `Bearer ${localStorage.getItem('token')}` 
       }
     });
-    
+    this.isAdmin = this.userInfo.role === 'Administrateur';
     this.isChefService = response.data.role ==='Chef-de-service';
   } catch (error) {
     console.error('Erreur lors de la récupération des informations utilisateur :', error);

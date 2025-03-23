@@ -8,7 +8,7 @@
     <!-- Grille des statistiques avec défilement vertical -->
     <div   class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-4 overflow-y-auto h-[calc(100vh-100px)]">
       <!-- Bloc statistique 1 -->
-      <div v-if="isAdmin || isChefService" class="bg-white shadow-md rounded-lg p-4 flex items-center w-full h-32">
+      <div v-if="isAdminDSI" class="bg-white shadow-md rounded-lg p-4 flex items-center w-full h-32">
         <router-link to="/utilisateurs" class="flex items-center w-full">
           <div class="flex-shrink-0 bg-blue-100 text-blue-500 rounded-full p-4">
             <i class="fas fa-users text-2xl sm:text-3xl"></i>
@@ -21,7 +21,7 @@
       </div>
 
       <!-- Bloc statistique 2 -->
-      <div  v-if="isAdmin || isChefService" class="bg-white shadow-md rounded-lg p-4 flex items-center w-full h-32">
+      <div  v-if="isAdminDSI" class="bg-white shadow-md rounded-lg p-4 flex items-center w-full h-32">
         <router-link to="/structures" class="flex items-center w-full">
           <div class="flex-shrink-0 bg-green-100 text-green-500 rounded-full p-4">
             <i class="fa-solid fa-building text-2xl sm:text-3xl"></i>
@@ -47,7 +47,7 @@
       </div>
 
       <!-- Bloc statistique 4 -->
-      <div v-if="isAdmin || isChefService ||isPointFocal||isInvite" class="bg-white shadow-md rounded-lg p-4 flex items-center w-full h-32">
+      <div v-if="isAdmin || isChefService ||isPointFocal||isInvite|| isAdminDSI||isResponsable" class="bg-white shadow-md rounded-lg p-4 flex items-center w-full h-32">
         <router-link to="/adminstat" class="flex items-center w-full" title="Notifications">
           <div class="flex-shrink-0 bg-red-100 text-red-500 rounded-full p-4">
             <i class="fas fa-bell text-2xl sm:text-3xl"></i>
@@ -60,7 +60,7 @@
       </div>
 
       <!-- Bloc statistique 5 -->
-      <div v-if="isAdmin || isChefService || isPointFocal" class="bg-white shadow-md rounded-lg p-4 flex items-center w-full h-32">
+      <div v-if="isAdmin || isChefService || isPointFocal ||isResponsable" class="bg-white shadow-md rounded-lg p-4 flex items-center w-full h-32">
         <router-link to="/canevas-activites" class="flex items-center w-full">
           <div class="flex-shrink-0 bg-indigo-100 text-indigo-500 rounded-full p-4">
             <i class="fas fa-lightbulb text-2xl sm:text-3xl"></i>
@@ -149,6 +149,8 @@ export default {
       isInvite: false,
       isPointFocal: false,
       isChefService: false,
+      isAdminDSI: false,
+      isResponsable: false,
     };
   },
   methods: {
@@ -165,6 +167,8 @@ export default {
     this.isInvite = this.userInfo.role === 'Ordonateur';
     this.isPointFocal = this.userInfo.role === 'Point-Focale';
     this.isChefService = this.userInfo.role === 'Chef-de-service';
+    this.isResponsable = this.userInfo.role === 'Responsable-de-structure';
+    this.isAdminDSI = this.userInfo.role === 'Administrateur_DSI';
     this.userId = this.userInfo.id;
 
     // Ajouter le nombre de notifications non lues

@@ -1,12 +1,13 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\User;
 use App\Models\SessionActivite;
 use Illuminate\Http\Request;
 use App\Models\Activite;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Support\Facades\DB;
+use App\Services\EmailService;
 class SessionActiviteController extends Controller
 {
     public function getSessionEnCours()
@@ -42,6 +43,8 @@ class SessionActiviteController extends Controller
     $validator = Validator::make($request->all(), [
         'annee' => 'required|digits:4', 
         'etat' => 'required|in:Ouvert,Clôturé,En_Cours',
+        'date_debut' => 'required|date',
+        'date_fin' => 'required|date',
         'plan_strategiques_id' => 'required|exists:plans_strategiques,id',
     ]);
 
@@ -62,15 +65,35 @@ class SessionActiviteController extends Controller
         }
 
         if ($request->etat === 'Ouvert') {
-            SessionActivite::where('etat', 'Ouvert')->update(['etat' => 'Clôturé,En_Cours']);
+            $toutesTerminees = !Activite::where('etat_activite', '!=', 'terminer')->exists();
+            if (!$toutesTerminees) {
+                // Met à jour toutes les sessions "Ouvert" en "clôturé", sauf celle Ouvert d'édition
+                SessionActivite::where('etat', 'Ouvert')->update(['etat' => 'En_Cours']);
+            }
+        } else {
+            SessionActivite::where('etat', 'Ouvert')->update(['etat' => 'Clôturé']);
         }
 
         $session = SessionActivite::create([
             'annee' => $request->annee,
+            'date_debut' => $request->date_debut,
+            'date_fin' => $request->date_fin,
             'etat' => $request->etat,
             'plan_strategiques_id' => $request->plan_strategiques_id, 
         ]);
+        $users = User::whereNotIn('role', ['Administrateur'])->get();
+    // Créer une notification pour chaque utilisateur
+    foreach ($users as $user) {
+        $article='Le';
+        if($user->role=='Ordonateur'){
+            $article="L'";
+        }
+        $messageContent = "Bonjour Monsieur/Madame {$article} {$user->role}, 
+        la session de proposition des projets d'activité pour l'année {$request->annee} 
+        débute le {$request->date_debut} et prend fin le {$request->date_fin}.";
 
+        EmailService::sendEmail($user->email, $messageContent);
+    }
         return response()->json([
             'status' => 'success',
             'data' => $session,
@@ -96,7 +119,9 @@ class SessionActiviteController extends Controller
     
         // Validation des données
         $validator = Validator::make($request->all(), [
-            'annee' => 'required|digits:4', // Assurez-vous que l'année est un nombre à 4 chiffres
+            'annee' => 'required|digits:4',
+            'date_debut' => 'required|date',
+            'date_fin' => 'required|date|after_or_equal:date_debut',
             'etat' => 'required|in:Ouvert,Clôturé,En_Cours',
         ]);
     
@@ -107,19 +132,42 @@ class SessionActiviteController extends Controller
             ], 422);
         }
     
-        // Vérifier si l'état demandé est "Ouvert"
+        // Vérifier si l'état est "Ouvert" et gérer les sessions existantes
         if ($request->etat === 'Ouvert') {
-            // Met à jour toutes les sessions "Ouvert" en "terminer", sauf celle Ouvert d'édition
-            SessionActivite::where('etat', 'Ouvert')
+            $sessionsOuvertes = SessionActivite::where('etat', 'Ouvert')
                 ->where('id', '!=', $session->id)
-                ->update(['etat' => 'Terminer']);
+                ->get();
+            foreach ($sessionsOuvertes as $sessionsOuverte) {
+                $etatActivite = Activite::where('etat_activite', '!=', 'terminer')->exists();
+                if ($etatActivite) {
+                    $sessionsOuverte->update(['etat' => 'En_Cours']);
+                } else {
+                    $sessionsOuverte->update(['etat' => 'Clôturé']);
+                }
+                # code...
+            }
+            
         }
     
         // Mise à jour de la session avec les nouvelles données
         $session->update([
             'annee' => $request->annee,
+            'date_debut' => $request->date_debut,
+            'date_fin' => $request->date_fin,
             'etat' => $request->etat,
         ]);
+    
+        // Notification aux utilisateurs
+        $users = User::whereNotIn('role', ['Administrateur'])->get();
+        foreach ($users as $user) {
+            $article = ($user->role == 'Ordonateur') ? "L'" : "Le";
+            $messageContent = "Bonjour Monsieur/Madame {$article} {$user->role},\n\n"
+                . "La fin de la session de proposition des projets d'activité pour l'année {$request->annee} "
+                . "a été repoussée au {$request->date_fin}.";
+    
+            // Envoi d'e-mails en tâche de fond
+            EmailService::sendEmail($user->email, $messageContent);
+        }
     
         return response()->json([
             'status' => 'success',
@@ -127,6 +175,7 @@ class SessionActiviteController extends Controller
             'message' => 'Session mise à jour avec succès !',
         ], 200);
     }
+    
     /**
      * Compter le nombre de sessions d'activités.
      */
@@ -150,4 +199,19 @@ class SessionActiviteController extends Controller
             ], 404);
         }
     }
+    public function supprimerSession($id)
+{
+    // Vérifier si la session est associée à une activité
+    $sessionAssociee = DB::table('activites')->where('sessions_id', $id)->exists();
+
+    if ($sessionAssociee) {
+        // Si la session est associée à une activité, on renvoie un message d'erreur
+        return response()->json(['message' => 'La session est associée à une activité elle ne peu pas etre supprime.'], 200);
+    } else {
+        // Sinon, on la supprime
+        DB::table('sessions_activites')->where('id', $id)->delete();
+        return response()->json(['message' => 'La session a été supprimée avec succès.'], 200);
+    }
+}
+
 }

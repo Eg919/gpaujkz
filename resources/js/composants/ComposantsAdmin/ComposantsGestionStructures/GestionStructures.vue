@@ -77,32 +77,61 @@
                   <input 
                     v-model="structure.libelle_structure" 
                     class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white"
+                    :disabled="editableRowId !== structure.id"
                   />
                 </td>
                 <td class="border border-gray-300 px-4 py-1">
                   <input 
                     v-model="structure.sigle" 
                     class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white"
+                    :disabled="editableRowId !== structure.id"
                   />
                 </td>
                 <td class="border border-gray-300 px-4 py-1">
                   <select 
                     v-model="structure.etat" 
                     class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white"
+                    :disabled="editableRowId !== structure.id"
                   >
                     <option value="actif">Actif</option>
                     <option value="inactif">Inactif</option>
                   </select>
                 </td>
-                <td class="border border-gray-300 px-4 py-1 flex items-center space-x-2">
+                <td class="border border-gray-300 px-4 py-1 flex items-center justify-center space-x-2">
                   <button 
+                    v-if="editableRowId !== structure.id"
+                    @click="editableRowId = structure.id" 
+                    class="text-yellow-500 px-3 py-1 rounded hover:bg-yellow-100 flex flex-col items-center justify-center"
+                    title="Modifier"
+                  >
+                    <i class="fas fa-edit"></i>
+                    <span class="text-xs hidden sm:inline">Modifier</span>
+                  </button>
+                  <button 
+                    v-if="editableRowId === structure.id"
                     @click="confirmerModification(structure)" 
-                    class="text-green-700 py-1 rounded hover:bg-green-200 flex flex-col items-center justify-center"
+                    class="text-green-700 px-3 py-1 rounded hover:bg-green-200 flex flex-col items-center justify-center"
                     :disabled="isLoading"
                     title="Valider la modification"
                   >
                     <i class="fas fa-check"></i>
                     <span class="text-xs hidden sm:inline">Valider</span>
+                  </button>
+                   <!-- Bouton Annuler -->
+                  <button 
+                    v-if="editableRowId === structure.id"
+                    @click="annulerModification" 
+                    class="text-gray-700 px-3 py-1 rounded hover:bg-red-200  flex flex-col items-center justify-center"
+                    title="Annuler"
+                  >
+                    <i class="fas fa-times"></i>
+                    <span class="text-xs hidden sm:inline">Annuler</span>
+                  </button>
+                  <button 
+                    @click="supprimerStructure(structure.id)" 
+                    class=" text-red-700 px-3 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center">
+                    <i class="fas fa-trash-alt"></i> <!-- Icône de suppression -->
+                    <span class="text-red-700 text-xs hidden sm:inline">Supprimer</span>
                   </button>
                 </td>
               </tr>
@@ -168,6 +197,7 @@ export default {
       isSuccess: false,
       file: null,
       loading: false,
+      editableRowId: null,
       csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
     };
   },
@@ -238,6 +268,18 @@ export default {
     accederFormulaireCreation() {
       this.showFormulaire = true;
     },
+    async supprimerStructure(id) {
+      if (confirm("Voulez-vous vraiment supprimer cette structure ?")) {
+        try {
+          const response = await axios.delete(`/api/structures/supprimer/${id}`);
+          alert(response.data.message);
+          this.fetchStructures(); // Recharger la liste après suppression
+        } catch (error) {
+          console.error("Erreur lors de la suppression:", error);
+          alert("Une erreur est survenue.");
+        }
+      }
+    },
     nextPage() {
       if (this.currentPage < this.totalPages) {
         this.currentPage++;
@@ -272,6 +314,7 @@ export default {
               }
             }
           );
+          this.editableRowId = null; // Quitte le mode édition après validation
           if (response.status === 200) {
             this.showAlert('Modifications enregistrées avec succès!', true);
             this.fetchStructures();
@@ -284,6 +327,13 @@ export default {
         }
       
     },
+    annulerModification() {
+      if (!confirm("Êtes-vous sûr de vouloir annuler cette modification ?")) {
+        console.log('Soumission annulée par l\'utilisateur.');
+        return; // Sort de la fonction si l'utilisateur annule.
+      }
+    this.editableRowId = null; // Annule l'édition et rétablit les valeurs initiales
+  },
     showAlert(message, success) {
       this.alertMessage = message;
       this.isSuccess = success;

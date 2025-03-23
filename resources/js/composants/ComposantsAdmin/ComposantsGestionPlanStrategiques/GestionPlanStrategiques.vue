@@ -28,6 +28,12 @@
             >
               <i class="fas fa-edit" title="Modifier"></i>
             </button>
+            <button 
+                @click="supprimerPlan(plan.id)"
+                class=" text-red-700 px-3 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center">
+                <i class="fas fa-trash-alt"></i> <!-- Icône de suppression -->
+              
+            </button>
           </div>
         </div>
       </div>
@@ -85,16 +91,44 @@
                 v-model="effet.libelle"
                 type="text"
                 class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white text-sm md:text-base"
+                :disabled="editableRowId !== effet.id"
               />
             </td>
             <td class="px-2 flex items-center justify-center space-x-6 border border-gray-300">
+              <button 
+                v-if="editableRowId !== effet.id"
+                @click="editableRowId = effet.id"
+                class="text-yellow-500 py-1 rounded hover:bg-yellow-100 flex flex-col items-center justify-center"
+                title="Modifier"
+              >
+                <i class="fas fa-edit"></i>
+                <span class="text-xs hidden sm:inline">Modifier</span>
+              </button>
               <button
+               v-if="editableRowId === effet.id"
                 @click.stop="sauvegarderEffet(effet)"
                 class="text-green-700 px-2 py-2 rounded hover:bg-green-200 flex flex-col items-center justify-center"
                 title="Valider la modification"
               >
                 <i class="fas fa-check"></i>
                 <span class="hidden sm:inline text-xs md:text-sm">Valider</span>
+              </button>
+              <!-- Bouton Annuler -->
+              <button 
+                v-if="editableRowId === effet.id"
+                @click="annulerModification" 
+                class="text-gray-700 py-1 rounded hover:bg-gray-200 flex flex-col items-center justify-center"
+                title="Annuler"
+              >
+                <i class="fas fa-times"></i>
+                <span class="text-xs hidden sm:inline">Annuler</span>
+              </button>
+              <button 
+                v-if="editableRowId !== effet.id"
+                  @click="supprimerEffet(effet.id)" 
+                  class=" text-red-700 px-3 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center">
+                  <i class="fas fa-trash-alt"></i> <!-- Icône de suppression -->
+                  <span class="text-red-700 text-xs hidden sm:inline">Supprimer</span>
               </button>
             </td>
           </tr>
@@ -118,10 +152,21 @@
                 v-model="objectif.libelle"
                 type="text"
                 class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white text-sm md:text-base"
+                :disabled="editableRowId !== objectif.id"
               />
             </td>
             <td class="px-2 flex items-center justify-center space-x-6 border border-gray-300">
+              <button 
+                v-if="editableRowId !== objectif.id"
+                @click="editableRowId = objectif.id" 
+                class="text-yellow-500 py-1 rounded hover:bg-yellow-100 flex flex-col items-center justify-center"
+                title="Modifier"
+              >
+                <i class="fas fa-edit"></i>
+                <span class="text-xs hidden sm:inline">Modifier</span>
+              </button>
               <button
+                v-if="editableRowId === objectif.id"
                 @click.stop="sauvegarderObjectif(objectif)"
                 class="text-green-700 px-2 py-2 rounded hover:bg-green-200 flex flex-col items-center justify-center"
                 title="Valider la modification"
@@ -129,6 +174,23 @@
                 <i class="fas fa-check"></i>
                 <span class="hidden sm:inline text-xs md:text-sm">Valider</span>
               </button>
+              <!-- Bouton Annuler -->
+            <button 
+              v-if="editableRowId === objectif.id"
+              @click="annulerModification" 
+              class="text-gray-700 py-1 rounded hover:bg-gray-200 flex flex-col items-center justify-center"
+              title="Annuler"
+            >
+              <i class="fas fa-times"></i>
+              <span class="text-xs hidden sm:inline">Annuler</span>
+            </button>
+            <button 
+            v-if="editableRowId !== objectif.id"
+              @click="supprimerObjectif(objectif.id)" 
+              class=" text-red-700 px-3 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center">
+              <i class="fas fa-trash-alt"></i> <!-- Icône de suppression -->
+              <span class="text-red-700 text-xs hidden sm:inline">Supprimer</span>
+          </button>
             </td>
           </tr>
         </tbody>
@@ -151,16 +213,44 @@
                 v-model="axe.libelle"
                 type="text"
                 class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white text-sm md:text-base"
+                :disabled="editableRowId !== axe.id"
               />
             </td>
             <td class="px-2 flex items-center justify-center space-x-6 border border-gray-300">
+              <button 
+                v-if="editableRowId !== axe.id"
+                @click="editableRowId = axe.id" 
+                class="text-yellow-500 py-1 rounded hover:bg-yellow-100 flex flex-col items-center justify-center"
+                title="Modifier"
+              >
+                <i class="fas fa-edit"></i>
+                <span class="text-xs hidden sm:inline">Modifier</span>
+              </button>
               <button
+               v-if="editableRowId === axe.id"
                 @click.stop="sauvegarderAxe(axe)"
                 class="text-green-700 px-2 py-2 rounded hover:bg-green-200 flex flex-col items-center justify-center"
                 title="Valider la modification"
               >
                 <i class="fas fa-check"></i>
                 <span class="hidden sm:inline text-xs md:text-sm">Valider</span>
+              </button>
+              <!-- Bouton Annuler -->
+              <button 
+                v-if="editableRowId === axe.id"
+                @click="annulerModification" 
+                class="text-gray-700 py-1 rounded hover:bg-gray-200 flex flex-col items-center justify-center"
+                title="Annuler"
+              >
+                <i class="fas fa-times"></i>
+                <span class="text-xs hidden sm:inline">Annuler</span>
+              </button>
+              <button 
+                v-if="editableRowId !== axe.id"
+                  @click="supprimerAxe(axe.id)"  
+                  class=" text-red-700 px-3 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center">
+                  <i class="fas fa-trash-alt"></i> <!-- Icône de suppression -->
+                  <span class="text-red-700 text-xs hidden sm:inline">Supprimer</span>
               </button>
             </td>
           </tr>
@@ -266,6 +356,7 @@ export default {
       objectifIdSelectionne: 0,
       errorMessage: null,
       alertMessage: '',
+      editableRowId : null,
     };
   },
   methods: {
@@ -363,6 +454,7 @@ export default {
         });
         this.fetchEffets();
         }
+        this.editableRowId = null; // Quitte le mode édition après validation
     },
    
     sauvegarderObjectif(objectif) {
@@ -377,6 +469,7 @@ export default {
         });
         this.fetchObjectifs();
         }
+        this.editableRowId = null; // Quitte le mode édition après validation
     },
    
     sauvegarderAxe(axe) {
@@ -391,6 +484,58 @@ export default {
         });
         this.fetchAxes();
         }
+        this.editableRowId = null; // Quitte le mode édition après validation
+    },
+    annulerModification() {
+    this.editableRowId = null; // Annule l'édition et rétablit les valeurs initiales
+  },
+   async supprimerEffet(effetId) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer cet effet ?')) {
+        axios.delete(`/api/effets-attendus/${effetId}`)
+          .then(() => {
+            this.showAlert('Effet supprimé avec succès', true);
+            this.fetchEffets();
+          })
+          .catch(error => {
+            this.showAlert("Erreur lors de la suppression de l'effet", false);
+          });
+      }
+    },
+ async   supprimerObjectif(objectifId) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer cet objectif stratégique ?')) {
+        axios.delete(`/api/objectifs-strategiques/${objectifId}/supprimer`)
+          .then(() => {
+            this.showAlert('Objectif supprimé avec succès', true);
+            this.fetchObjectifs();
+          })
+          .catch(error => {
+            this.showAlert("Erreur lors de la suppression de l'objectif", false);
+          });
+      }
+    },
+  async  supprimerAxe(axeId) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer cet axe stratégique ?')) {
+        axios.delete(`/api/axes-strategiques/${axeId}/supprimer`)
+          .then(() => {
+            this.showAlert('Axe supprimé avec succès', true);
+            this.fetchAxes();
+          })
+          .catch(error => {
+            this.showAlert("Erreur lors de la suppression de l'axe", false);
+          });
+      }
+    },
+async supprimerPlan(planId) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer ce plan stratégique ?')) {
+        axios.delete(`/api/plans-strategiques/${planId}`)
+          .then(() => {
+            this.showAlert('Plan supprimé avec succès', true);
+            this.recupererPlans();
+          })
+          .catch(error => {
+            this.showAlert("Erreur lors de la suppression du plan", false);
+          });
+      }
     },
     showAlert(message, success) {
       this.alertMessage = message;

@@ -39,33 +39,18 @@
               'bg-green-200': activite.etat_slection === 'Validé',
               'ring-2 ring-blue-400': activite.id === activiteIdSelectionne,
             }"
-            @click="selectionnerActivite(activite.id)"
+              @click="redirectToActivite(activite)"
           >
             <p class="text-sm text-gray-600 truncate">{{ activite.structure_sigle }}</p>
             <p class="font-bold truncate">{{ activite.libelle || 'Libellé indisponible' }}</p>
             <!-- Affichage conditionnel -->
-            <div v-if="activite.etat_session === 'Ouvert'" class="mt-2"></div>
+            <div v-if="activite.etat_session === 'Ouvert'" class="mt-2">
+              <!-- Message "Session Ouverte" -->
+              <p class="text-green-500">Session Ouverte</p> 
+            </div>
             <div v-else class="flex justify-between items-center mt-2">
               <!-- Message "Session Clôturée" -->
               <p class="text-gray-500">Session Clôturée</p>
-
-              <!-- Section de réconduction -->
-              <div>
-                <p class="text-gray-500">Réconduire l'activité</p>
-                <label class="flex items-center space-x-2">
-                  <div v-if="activite.reconduir !== anneeEnCours">
-                    <input
-                      type="checkbox"
-                      v-model="activite.reconduir"
-                      @change="reconduireActivite(activite.id)"
-                      :disabled="isLoading"
-                      title="Réconduire cette activité"
-                    />
-                    <span>Réconduire</span>
-                  </div>
-                  <span v-else>Reconduit</span>
-                </label>
-              </div>
             </div>
           </div>
         </div>
@@ -127,65 +112,14 @@
   
     },
     methods: {
-       redirectToActivite(id) {
-      this.$router.push({ name: 'GestionActivites', params: { id } });
-
-    },
-    async reconduireActivite(id) {
-  // Validation de l'ID
-  if (!id || isNaN(id)) {
-    this.showAlert('ID de l\'activité invalide.', false);
-    return;
-  }
-
-  // Activer l'état de chargement
-  this.isLoading = true;
-
-  try {
-    // Envoyer la requête PUT pour reconduire l'activité
-    const response = await axios.put(`/api/activites/${id}/reconduire`);
-
-    // Vérifier la réponse du serveur
-    if (!response.data || !response.data.activite || !response.data.message) {
-      throw new Error('Réponse du serveur invalide.');
-    }
-
-    // Récupérer l'activité mise à jour depuis la réponse
-    const updatedActivite = response.data.activite;
-
-    // Mettre à jour les données localement
-    const index = this.activites.findIndex((activite) => activite.id === id);
-    if (index !== -1) {
-      // Mettre à jour l'élément dans le tableau réactif
-      this.activites.splice(index, 1, updatedActivite);
-    }
-
-    // Afficher un message de succès
-    this.showAlert(response.data.message, true);
-  } catch (error) {
-    // Gestion des erreurs
-    if (error.response) {
-      // Erreur côté serveur (4xx ou 5xx)
-      console.error('Erreur serveur:', error.response.data);
-      this.showAlert(
-        error.response.data?.message || 'Erreur lors de la reconduction.',
-        false
-      );
-    } else if (error.request) {
-      // Pas de réponse du serveur (problème réseau)
-      console.error('Pas de réponse du serveur:', error.request);
-      this.showAlert('Erreur réseau. Veuillez vérifier votre connexion.', false);
+      redirectToActivite(activite) {
+    if (activite.etat_session === 'Ouvert' || activite.etat_session === 'En_Cours') {
+        this.$router.push({ name: 'GestionActivites', params: { id: activite.id } });
     } else {
-      // Erreur inattendue
-      console.error('Erreur inattendue:', error.message);
-      this.showAlert('Une erreur inattendue s\'est produite.', false);
+        this.showAlert('Session Clôturée, impossible d\'accéder à l\'interface de planification.', false);
     }
-  } finally {
-    // Désactiver l'état de chargement
-    this.isLoading = false;
-  }
 },
-      
+   
       async fetchActivites(sessionsId) {
         if (!sessionsId) {
           this.showAlert('Veuillez sélectionner une session.', false);

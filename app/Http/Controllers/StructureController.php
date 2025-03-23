@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\DB;
 use App\Models\Structure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -81,6 +81,28 @@ class StructureController extends Controller
             return response()->json(['error' => 'Erreur lors de la suppression : ' . $e->getMessage()], 500);
         }
     }
+    public function supprimerStructure($id)
+{
+    // Vérifier si la structure est associée à un utilisateur
+    $structureAssociee = DB::table('users')->where('structure_id', $id)->exists();
+
+    if ($structureAssociee) {
+        // Si la structure est associée à un utilisateur, la masquer
+        DB::table('structures')->where('id', $id)->update(['masque' => 1]);
+
+        return response()->json([
+            'message' => 'La structure est associée à un utilisateur, elle a été masquée.'
+        ], 200);
+    } else {
+        // Si la structure n'est pas associée, la supprimer définitivement
+        DB::table('structures')->where('id', $id)->delete();
+
+        return response()->json([
+            'message' => 'La structure a été supprimée avec succès.'
+        ], 200);
+    }
+}
+
     /**
      * Compter le nombre de structures.
      */

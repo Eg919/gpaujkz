@@ -13,6 +13,7 @@ import GestionProgrammesActivites from './composants/ComposantsAdmin/ComposantsG
 import GestionProgrammesActivitesStructure from './composants/ComposantsAdmin/ComposantsGestionActivites/GestionProgrammesActivitesStructure.vue';
 import GestionProgrammesActivitesHistorique from './composants/ComposantsAdmin/ComposantsGestionActivites/GestionProgrammesActivitesHistorique.vue';
 import GestionActivites from './composants/ComposantsAdmin/ComposantsGestionActivites/GestionActivites.vue';
+import GestionConfirmationActivites from './composants/ComposantsAdmin/ComposantsGestionActivites/GestionConfirmationActivites.vue';
 import AdminStat from './composants/ComposantsAdmin/ComposantsDeBase/AdminStat.vue';
 import ContributeursProjet from './composants/ComposantsAdmin/ComposantsDeBase/ContributeursProjet.vue';
 import GestionDesStatistiques from './composants/ComposantsAdmin/ComposantsGestionRapportsTrimestriels/GestionDesStatistiques.vue';
@@ -43,6 +44,7 @@ const routes = [
     path: '/activite-hort-programme',
     name:'GestionActiviteHortProgramme',
     component: GestionActiviteHortProgramme,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service'] }
     
   },
   {
@@ -62,11 +64,13 @@ const routes = [
     path: '/select-rapport',
     name:'SelectRapportTrimestriel',
     component:SelectRapportTrimestriel,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
   },
   {
     path: '/rapport',
     name:'GestoinRapport',
     component: GestoinRapport,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
   },
   {
     path: '/rapport-structure',
@@ -78,21 +82,25 @@ const routes = [
     path: '/rapports-trimestriels',
     name:'GestoinRapportTrimestriel1',
     component:GestoinRapportTrimestriel1,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
   },
   {
     path: '/rapports-trimestriels',
     name:'GestoinRapportTrimestriel2',
     component:GestoinRapportTrimestriel2,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
   },
   {
     path: '/rapports-trimestriels',
     name:'GestoinRapportTrimestriel3',
     component:GestoinRapportTrimestriel3,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
   },
   {
     path: '/rapports-trimestriels',
     name:'GestoinRapportTrimestriel4',
     component:GestoinRapportTrimestriel4,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
   },
   {
     path: '/statistiques',
@@ -110,27 +118,32 @@ const routes = [
     path: '/structures',
     name: 'GestionStructures',
     component: GestionStructures,
+    meta: { requiresAuth: true, role: 'Administrateur_DSI' }
   },
   
   {
     path: '/utilisateurs',
     name: 'GestionUtilisateurs',
     component: GestionUtilisateurs,
+    meta: { requiresAuth: true, role: 'Administrateur_DSI' }
   },
   {
     path: '/plans-strategiques',
     name: 'GestionPlanStrategiques',
     component: GestionPlanStrategiques,
+    meta: { requiresAuth: true, role: 'Administrateur' }
   },
   {
     path: '/projets-activites',
     name: 'GestionProjetsActivites',
     component: GestionProjetsActivites,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service'] }
   },
   {
     path: '/programmes-activites',
     name: 'GestionProgrammesActivites',
     component: GestionProgrammesActivites,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
   },
   {
     path: '/programmes-activites-structure',
@@ -141,12 +154,14 @@ const routes = [
     path: '/programmes-activites-historique/:id',
     name: 'GestionProgrammesActivitesHistorique',
     component: GestionProgrammesActivitesHistorique,
+    meta: { requiresAuth: true, role: 'Administrateur' }
   },
   
   {
     path: '/sessions-activites/:id?',
     name: 'GestionSessionsActivites',
     component: GestionSessionsActivites,
+    meta: { requiresAuth: true, role: 'Administrateur' }
   },
   {
     path: '/suivi-activites/:id',
@@ -171,10 +186,17 @@ const routes = [
    
   },
   {
+    path: '/confirmation-activites',
+    name: 'GestionConfirmationActivites',
+    component: GestionConfirmationActivites,
+    meta: { requiresAuth: true, role: 'Ordonateur' }
+  },
+  {
     path: '/programmes-activites/:id?',
     name: 'GestionProgrammesActivites',
     component: GestionProgrammesActivites,
     props: true,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
   },
 ];
 

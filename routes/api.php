@@ -58,6 +58,8 @@ Route::post('/send-email', [EmailController::class, 'sendEmail']);
         Route::get('/structures', [StructureController::class, 'index']);
         Route::get('/structures/count', [StructureController::class, 'count']);
         Route::post('/import-structures', [ImportStructuresController::class, 'importStructures']);
+        Route::delete('/structures/supprimer/{id}', [StructureController::class, 'supprimerStructure']);
+
         // Routes pour les utilisateurs
         
 
@@ -69,11 +71,13 @@ Route::post('/send-email', [EmailController::class, 'sendEmail']);
         Route::get('/users/count', [UserController::class, 'countUsers']);
         Route::put('/utilisateurs/{id}/reset-password', [UserController::class, 'resetPassword']);
         Route::get('/user-info', [UserController::class, 'getUserInfo']);
+        Route::delete('/utilisateurs/supprimer/{id}', [UserController::class, 'supprimerUtilisateur']);
         // Routes pour les axes stratégiques
         Route::post('/axes-strategiques', [AxeStrategiqueController::class, 'store']);
         Route::get('/axes-strategiques', [AxeStrategiqueController::class, 'index']);
         Route::put('/axes-strategiques/{id}/modifier', [AxeStrategiqueController::class, 'update']);
         Route::get('axes-strategiques-Ouvert', [AxeStrategiqueController::class, 'getAxesStrategiquesEnCours']);
+        Route::delete('/axes-strategiques/{id}/supprimer', [AxeStrategiqueController::class, 'supprimerAxe']);
         // Routes pour les objectifs stratégiques
         Route::post('/objectifs-strategiques', [ObjectifStrategiqueController::class, 'store']);
         Route::get('/objectifs-strategiques/{axeStrategiqueId}', [ObjectifStrategiqueController::class, 'getByAxe']);
@@ -82,28 +86,34 @@ Route::post('/send-email', [EmailController::class, 'sendEmail']);
         Route::get('/objectifs-strategiques-Ouvert', [ObjectifStrategiqueController::class, 'objectifsStrategiquesEnCours']);
         Route::get('/objectifs/rapports', [ObjectifStrategiqueController::class, 'rapport']);
         Route::get('/objectifs-strategiques-Ouvert-activites', [ObjectifStrategiqueController::class, 'objectifsStrategiquesEnCoursAvecActivites']);// Routes pour les effets attendus
+        Route::delete('/objectifs-strategiques/{id}/supprimer', [ObjectifStrategiqueController::class, 'supprimerObjectif']);
         Route::post('/effets-attendus', [EffetAttenduController::class, 'store']);
         Route::get('/effets-attendus', [EffetAttenduController::class, 'index']);
         Route::put('/effets-attendus/{id}/modifier', [EffetAttenduController::class, 'update']);
          // Récupérer les effets attendus pour un axe stratégique spécifique
          Route::get('/axes-strategiques/{axeId}/effets-attendus', [EffetAttenduController::class, 'getEffetsAttendusParAxe']);
-        // Routes pour les plans stratégiques
+        Route::delete('/axes-strategiques/{id}/supprimer', [AxeStrategiqueController::class, 'supprimerAxe']);
+         // Routes pour les plans stratégiques
         Route::post('/plans-strategiques', [PlanStrategiqueController::class, 'store']);
         Route::get('/plans-strategiques', [PlanStrategiqueController::class, 'index']);
         Route::get('/plan-strategique-en-cour', [PlanStrategiqueController::class, 'getPlanActif']);
         Route::get('/plans-strategiques/{id}', [PlanStrategiqueController::class, 'show']);
         Route::put('/plans-strategiques/{id}', [PlanStrategiqueController::class, 'update']);
+        Route::delete('/plans-strategiques/{id}', [PlanStrategiqueController::class, 'supprimerPlan']);
          // Routes pour les Strategie
         Route::get('/axes/{planId}', [StrategieController::class, 'getAxesByPlan']);
         Route::get('/objectifs/{axeId}', [StrategieController::class, 'getObjectifsByAxe']);
         Route::get('/effets/{objectifId}', [StrategieController::class, 'getEffetsByObjectif']);
         Route::get('/effets-activites/{objectifId}', [StrategieController::class, 'getEffetsByObjectifActivite']);
+        Route::delete('/effets-attendus/{id}', [EffetAttenduController::class, 'supprimerEffet']);
         // Routes pour les sessions
         Route::get('/sessions-activites', [SessionActiviteController::class, 'index']);
         Route::post('/sessions-activites', [SessionActiviteController::class, 'store']);
         Route::put('/sessions-activites/{id}', [SessionActiviteController::class, 'update']);
         Route::get('/session-Ouvert', [SessionActiviteController::class, 'getSessionEnCours']);
         Route::get('/sessions-activites/count', [SessionActiviteController::class, 'countSessions']);
+        Route::delete('/sessions/supprimer/{id}', [SessionActiviteController::class, 'supprimerSession']);
+        
         Route::get('/activites/{activiteId}/session', [SessionActiviteController::class, 'getSessionByActivite']);
         Route::post('/activites', [ActiviteController::class, 'store']);
         Route::get('/activites/count-valide', [ActiviteController::class, 'countValidatedActivities']);
@@ -119,6 +129,9 @@ Route::post('/send-email', [EmailController::class, 'sendEmail']);
         Route::get('/activites/{activiteId}', [ActiviteController::class, 'show']);
         Route::post('/activites/{id}/soumission', [ActiviteController::class, 'soumettreActivite']);
         Route::get('/activite-statistique/{id}', [TacheController::class, 'getActivite']);
+        Route::get('/activites-validees', [ActiviteController::class, 'getActivitesValidees']);
+        Route::post('/activites/{id}/confirmer', [ActiviteController::class, 'confirmationPresi']);
+        Route::post('/activites-confirmer', [ActiviteController::class, 'tousConfirmer']);
         // Route pour mettre à jour l'état financier d'une activité
         Route::put('/activites/{id}/etat-financier', [ActiviteController::class, 'mettreAJourEtatFinancier']);
         Route::post('/activites/{id}/taches', [TacheController::class, 'store']);
@@ -128,7 +141,7 @@ Route::post('/send-email', [EmailController::class, 'sendEmail']);
         Route::get('/activites-detaille/{id}', [ActiviteController::class, 'ActiviteDetailles']);
         Route::put('/activites/{id}/reconduire', [ActiviteController::class, 'recomduireActivite']);
         Route::put('activites/{activiteId}/modification', [ActiviteController::class, 'update']);
-        Route::post('/import-activites', [ActiviteImportsController::class, 'import']);
+        Route::delete('/activites/{id}/supprimer', [ActiviteController::class, 'supprimerActivite']);
         Route::put('/taches/{id}', [TacheController::class, 'modifierTache']);
         Route::post('/tachesEtat/{id}', [TacheController::class, 'modifierTacheEtat']);
         Route::delete('/taches/{id}/supprimer', [TacheController::class, 'destroy'])->name('taches.destroy');

@@ -103,7 +103,7 @@ class AuthController extends Controller
         // Mettre à jour le mot de passe
         $user->password = Hash::make($request->new_password);
         $user->save();
-        return response()->json(['message' => 'Mot de passe changé avec succès. Vous avez été déconnecté.', 'redirect' => '/gestionRoles'], 200);
+        return response()->json(['message' => 'Mot de passe changé avec succès. Vous avez été déconnecté.', 'redirect' => '/admin'], 200);
     }
 
     /**
@@ -117,10 +117,10 @@ class AuthController extends Controller
     {
         $user = $request->user();
         // Révoquer tous les tokens personnels de l'utilisateur
-        $user->tokens()->delete();
         // Optionnel : invalider la session de l'utilisateur
         $request->session()->invalidate();
-        // $request->session()->regenerateToken();
+        $user->tokens()->delete();
+       //  $request->session()->regenerateToken();
         return response()->json(['message' => 'Déconnexion réussie'], 200);
     }
 

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('libelle_structure');
             $table->string('sigle');
             $table->string('etat');
+            $table->integer('masque')->nullable();
             $table->timestamps();
         });
     }

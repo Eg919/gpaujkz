@@ -13,7 +13,10 @@ return new class extends Migration
 {
     Schema::create('sessions_activites', function (Blueprint $table) {
         $table->id();  
-        $table->integer('annee');   
+        $table->integer('annee');  
+        $table->date('date_debut') ;
+        $table->date('date_fin') ;
+        $table->integer('masque')->nullable();
         $table->string('etat');
         $table->foreignId('plan_strategiques_id')->constrained('plans_strategiques', )->onDelete('cascade'); 
         $table->timestamps(); 

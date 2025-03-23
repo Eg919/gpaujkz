@@ -36,6 +36,7 @@
             <i class="fas fa-plus-circle"></i> Nouvelle Activité
           </router-link>
           <router-link
+            v-if="isChefService || isResponsable||isPointFocal"
             to="/programmes-activites-structure"
             class="block px-4 py-2 text-gray-800 hover:bg-gray-200"
             :class="{ active: isActive('/programmes-activites-structure') }"
@@ -59,6 +60,16 @@
           >
             <i class="fas fa-clock"></i>
             <span class="sm:inline">Activités hors programme</span>
+          </router-link>
+          <router-link
+            v-if="isInvite"
+            to="/confirmation-activites"
+            class="block px-4 py-2 text-gray-800 hover:bg-gray-200"
+            :class="{ active: isActive('/confirmation-activites') }"
+            title="Activités à confirmer"
+          >
+            <i class="fas fa-check"></i>
+            <span class="sm:inline">Activités à confirmer</span>
           </router-link>
         </div>
       </div>
@@ -95,6 +106,7 @@
             <span class=" sm:inline">Rapports</span>
           </router-link>
           <router-link
+           v-if="isChefService || isResponsable||isPointFocal"
             to="/rapport-structure"
             class="block px-4 py-2 text-gray-800 hover:bg-gray-200"
             :class="{ active: isActive('/rapport-structure') }"
@@ -107,7 +119,7 @@
       </div>
 
       <!-- Option Paramètres avec un menu déroulant -->
-      <div class="relative" v-if="isAdmin || isChefService">
+      <div class="relative" v-if="isAdminDSI || isAdmin">
         <div
           
           @click="toggleParametresMenu"
@@ -129,6 +141,7 @@
             <i class="fas fa-map"></i> Plans Stratégiques
           </router-link>
           <router-link
+          v-if="isAdminDSI"
             to="/structures"
             class="block px-4 py-2 text-gray-800 hover:bg-gray-200"
             :class="{ active: isActive('/structures') }"
@@ -136,6 +149,7 @@
             <i class="fas fa-building"></i> Structures
           </router-link>
           <router-link
+          v-if="isAdminDSI"
             to="/utilisateurs"
             class="block px-4 py-2 text-gray-800 hover:bg-gray-200"
             :class="{ active: isActive('/utilisateurs') }"
@@ -227,6 +241,7 @@ export default {
       isPointFocal: false,
       isChefService: false,
       isResponsable: false,
+      isAdminDSI: false,
       userId:'',
       
     };
@@ -267,6 +282,7 @@ export default {
       this.showParametresMenu = false;
         this.showActiviteMenu = false;
         this.notificaionVisible = false;
+        
     },
     handleClickOutsideMenu(event) {
       if (!this.$el.contains(event.target)) {
@@ -281,6 +297,7 @@ export default {
   
   beforeDestroy() {
     document.removeEventListener('click', this.handleClickOutsideMenu);
+    
   },
     toggleNotification() {
       this.notificaionVisible = !this.notificaionVisible;
@@ -289,9 +306,10 @@ export default {
       } else {
         document.removeEventListener('click', this.handleClickOutsideMenu);
       }
-      this.showParametresMenu = false;
+        this.showParametresMenu = false;
         this.showActiviteMenu = false;
         this.showSuiviMenu = false;
+      
     },
     fermerNotification() {
       this.notificaionVisible = false;
@@ -302,8 +320,11 @@ export default {
       }
     },
    
-    
+    fermerFormulaireConnexion() {
+      this.formVisible = false;
+    },
     async seDeconnecter() {
+      if(!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
       try {
         await axios.post('/api/logout');
         this.userInfo = null;
@@ -328,6 +349,7 @@ export default {
     this.isPointFocal = this.userInfo.role === 'Point-Focale';
     this.isChefService = this.userInfo.role === 'Chef-de-service';
     this.isResponsable = this.userInfo.role === 'Responsable-de-structure';
+    this.isAdminDSI = this.userInfo.role === 'Administrateur_DSI';
     this.userId = this.userInfo.id;
 
     // Ajouter le nombre de notifications non lues

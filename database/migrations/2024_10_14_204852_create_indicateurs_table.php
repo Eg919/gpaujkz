@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('indicateur');
             $table->string('unite');
             $table->string('reference');
+            $table->integer('masque')->nullable();
             $table->string('cible');
             $table->foreignId('activite_id')->constrained('activites', )->onDelete('cascade');
             $table->timestamps();

@@ -1,9 +1,8 @@
 <?php
 namespace App\Http\Controllers;
-
+use App\Models\EffetAttendu;
 use App\Models\ObjectifStrategique;
 use Illuminate\Http\Request;
-use App\Models\PlanStrategique;
 use App\Models\SessionActivite;
 class ObjectifStrategiqueController extends Controller
 {
@@ -91,6 +90,24 @@ public function objectifsStrategiquesEnCoursAvecActivites()
     return response()->json([
         'status' => 'success',
         'data' => $objectifs
+    ]);
+}
+public function supprimerObjectif($id)
+{
+    $objectif = ObjectifStrategique::findOrFail($id);
+    $effets = EffetAttendu::where('objectif_strategique_id', $id)->get();
+    if ($effets->count() > 0) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Cet objectif a des effets attendus associés. Veuillez les supprimer d\'abord.'
+        ], 400);
+    }
+
+    $objectif->delete();
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Objectif supprimé avec succès.'
     ]);
 }
 

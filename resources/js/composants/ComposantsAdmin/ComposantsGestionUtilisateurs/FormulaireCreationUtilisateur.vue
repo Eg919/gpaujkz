@@ -22,32 +22,6 @@
         {{ successMessage }}
       </div>
 
-      <!-- Champ Nom -->
-      <div class="mb-4">
-        <label for="nom" class="block text-sm sm:text-base font-medium mb-1">Nom :</label>
-        <input 
-          type="text" 
-          v-model="form.nom" 
-          placeholder ="veillez entrer votre nom"
-          required 
-          class="mt-1 block w-full border border-gray-300 rounded-md p-2 sm:p-3 text-sm sm:text-base"
-        />
-        <span v-if="errors.nom" class="text-red-500 text-xs sm:text-sm">{{ errors.nom }}</span>
-      </div>
-
-      <!-- Champ Prénom -->
-      <div class="mb-4">
-        <label for="prenom" class="block text-sm sm:text-base font-medium mb-1">Prénom :</label>
-        <input 
-          type="text" 
-          v-model="form.prenom" 
-          placeholder ="veillez entrer le prénom"
-          required 
-          class="mt-1 block w-full border border-gray-300 rounded-md p-2 sm:p-3 text-sm sm:text-base"
-        />
-        <span v-if="errors.prenom" class="text-red-500 text-xs sm:text-sm">{{ errors.prenom }}</span>
-      </div>
-
       <!-- Champ Rôle -->
       <div class="mb-4">
         <label for="role" class="block text-sm sm:text-base font-medium mb-1">Rôle :</label>
@@ -57,11 +31,13 @@
           placeholder ="veillez selectioner le rôle"
           class="mt-1 block w-full border border-gray-300 rounded-md p-2 sm:p-3 text-sm sm:text-base"
         >
-          <option v-if="isAdmin" value="Administrateur">Administrateur</option>
-          <option v-if="isAdmin" value="Chef-de-service">Chef-de-service</option>
-          <option v-if="isAdmin" value="Responsable-de-structure">Responsable-de-structure</option>
+        <option value="">Veuillez sélectionner le rôle</option>
+          <option  value="Administrateur">Administrateur_DEPS</option>
+          <option  value="Chef-de-service">Chef-de-service</option>
+          <option  value="Responsable-de-structure">Responsable-de-structure</option>
           <option  value="Point-Focale">Point Focale</option>
-          <option v-if="isAdmin" value="Ordonateur">Ordonateur</option>
+          <option  value="Ordonateur">Ordonateur</option>
+          <option  value="Administrateur_DSI">Administrateur_DSI</option>
         </select>
         <span v-if="errors.role" class="text-red-500 text-xs sm:text-sm">{{ errors.role }}</span>
       </div>
@@ -75,6 +51,7 @@
           required 
           class="mt-1 block w-full border border-gray-300 rounded-md p-2 sm:p-3 text-sm sm:text-base overflow-y-auto"
         >
+        <option value="">Veuillez sélectionner la structure</option>
           <option 
             v-for="structure in structures" 
             :key="structure.id" 
@@ -98,11 +75,26 @@
         />
         <span v-if="errors.email" class="text-red-500 text-xs sm:text-sm">{{ errors.email }}</span>
       </div>
-
+      <div>
+            <!-- Champ Etat -->
+            <div class="mb-4">
+              <label for="etat" class="block text-sm sm:text-base font-medium mb-1">Etat :</label>
+              <select 
+                v-model="form.etat" 
+                required 
+                placeholder ="veillez selectioner l'état"
+                class="mt-1 block w-full border border-gray-300 rounded-md p-2 sm:p-3 text-sm sm:text-base"
+              >
+                <option value="Actif">Actif</option>
+                <option value="Inactif">Inactif</option>
+              </select>
+              <span v-if="errors.etat" class="text-red-500 text-xs sm:text-sm">{{ errors.etat }}</span>
+            </div>
+      </div>
       <!-- Bouton de soumission -->
       <button 
         type="submit" 
-        class="w-full bg-green-500 text-yellow-700 p-2 sm:p-3 rounded-lg hover:bg-green-700 mt-3"
+        class="w-full bg-green-500 text-white p-2 sm:p-3 rounded-lg hover:bg-green-700 mt-3"
       >
         Créer un Utilisateur
       </button>
@@ -117,47 +109,22 @@ export default {
     return {
       structures: [],
       form: {
-        nom: '',
-        prenom: '',
         email: '',
         role: '',
-        etat: 'actif',
+        etat: 'Actif',
         structure_id: '',
       
       },
       errors: {},
       successMessage: '', // Ajoutez cette ligne
-      isAdmin: false,
-      isInvite: false,
-      isPointFocal: false,
-      isChefService: false,
+     
     };
   },
   mounted() {
     this.fetchStructures();
-    this.fetchUserInfo();
   },
   methods: {
-    async fetchUserInfo() {
-  try {
-    const response = await axios.get('/api/user-info', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}` 
-      }
-    });
-
-    this.userInfo = response.data;
-    this.isAdmin = this.userInfo.role === 'Administrateur';
-    this.isInvite = this.userInfo.role === 'Ordonateur';
-    this.isPointFocal = this.userInfo.role === 'Point-Focale';
-    this.isChefService = this.userInfo.role === 'Chef-de-service';
-    this.userId = this.userInfo.id;
-
-
-  } catch (error) {
-    console.error('Erreur lors de la récupération des informations utilisateur :', error);
-  }
-},
+ 
     async fetchStructures() {
       try {
         const response = await fetch('/api/structures');
@@ -167,39 +134,49 @@ export default {
         console.error(error);
       }
     },
-    async submitForm() {
-      this.errors = {};
-      this.successMessage = ''; // Réinitialiser le message de succès
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+   async submitForm() {
+  this.errors = {};
+  this.successMessage = ''; // Réinitialiser le message de succès
 
-      try {
-        const response = await fetch('/api/utilisateurs', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-          },
-          body: JSON.stringify(this.form),
-        });
-        this.$emit('submitForm');
-        if (!response.ok) {
-          const errorData = await response.json();
-          this.errors = errorData.errors || {};
-          if (Object.keys(this.errors).length === 0) {
-            this.errors.general = 'Une erreur est survenue lors de la création de l’utilisateur.';
-          }
-          throw new Error('Erreur lors de la création de l’utilisateur');
-        }
+  // Vérification du format de l'email avant envoi
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@ujkz\.bf$/;
+  if (!emailRegex.test(this.form.email)) {
+    this.errors.email = "L'adresse email doit se terminer par @ujkz.bf.";
+    return; // Stoppe l'envoi du formulaire
+  }
 
-        this.successMessage = 'Utilisateur créé avec succès!'; // Message de succès
-        setTimeout(() => {
-          this.successMessage = ''; // Masquer le message après 2 secondes
-          this.fermerFormulaire(); // Fermer le formulaire
-        }, 1000); // 1 secondes
-      } catch (error) {
-        console.error(error);
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+  try {
+    const response = await fetch('/api/utilisateurs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+      },
+      body: JSON.stringify(this.form),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      this.errors = errorData.errors || {};
+      if (Object.keys(this.errors).length === 0) {
+        this.errors.general = 'Une erreur est survenue lors de la création de l’utilisateur.';
       }
-    },
+      throw new Error('Erreur lors de la création de l’utilisateur');
+    }
+
+    this.successMessage = 'Utilisateur créé avec succès!';
+    this.$emit('submitForm'); // Émettre un événement pour informer le parent
+    setTimeout(() => {
+      this.successMessage = ''; // Masquer le message de succès
+      this.fermerFormulaire(); // Fermer le formulaire
+    }, 500);
+  } catch (error) {
+    console.error(error);
+  }
+}
+,
     fermerFormulaire() {
       this.$emit('close');
       console.log('Formulaire fermé');

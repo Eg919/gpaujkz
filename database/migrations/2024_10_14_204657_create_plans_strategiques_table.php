@@ -17,12 +17,14 @@ return new class extends Migration
             $table->date('debut');
             $table->date('fin');
             $table->string('etat');
+            $table->integer('masque')->nullable();
             $table->timestamps();
         });
 
         Schema::create('axes_strategiques', function (Blueprint $table) {
             $table->id(); 
             $table->string('libelle');
+            $table->integer('masque')->nullable();
             $table->foreignId('plan_strategique_id')->constrained('plans_strategiques', )->onDelete('cascade'); 
             $table->timestamps();
         });
@@ -30,6 +32,7 @@ return new class extends Migration
         Schema::create('objectifs_strategiques', function (Blueprint $table) {
             $table->id(); 
             $table->string('libelle');
+            $table->integer('masque')->nullable();
             $table->foreignId('axe_strategique_id')->constrained('axes_strategiques', )->onDelete('cascade'); 
             $table->timestamps(); 
         });
@@ -37,6 +40,7 @@ return new class extends Migration
         Schema::create('effets_attendus', function (Blueprint $table) {
             $table->id(); 
             $table->string('libelle');
+            $table->integer('masque')->nullable();
             $table->foreignId('objectif_strategique_id')->constrained('objectifs_strategiques', )->onDelete('cascade'); 
             $table->timestamps();
         });

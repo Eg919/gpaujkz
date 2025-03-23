@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\AxeStrategique;
 use App\Models\PlanStrategique;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -64,9 +65,14 @@ class PlanStrategiqueController extends Controller
         return response()->json(['message' => 'Plan stratégique mis à jour avec succès', 'plan' => $plan]);
     }
 
-    public function destroy(int $id): JsonResponse
+
+    public function supprimerPlan($id)
     {
         $plan = PlanStrategique::findOrFail($id);
+        $axes =AxeStrategique::where('plan_strategique_id', $id)->get();
+        if($axes->count() > 0){
+            return response()->json(['message' => 'Impossible de supprimer ce plan, car il contient des axes stratégiques.'], 400);
+        }
         $plan->delete();
 
         return response()->json(['message' => 'Plan stratégique supprimé avec succès']);

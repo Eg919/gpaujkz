@@ -87,7 +87,7 @@
         :disabled="isSubmitting"
       >
         <span v-if="isSubmitting">Chargement...</span>
-        <span v-else>{{ planId ? 'Modifier' : 'Créer' }}</span>
+        <span v-else>{{ planId ? 'Modifie un Plan' : 'Créer un Plan' }}</span>
       </button>
     </form>
 

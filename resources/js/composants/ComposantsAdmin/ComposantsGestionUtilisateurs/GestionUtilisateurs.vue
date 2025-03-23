@@ -61,85 +61,106 @@
           <table class="w-full text-sm text-left text-gray-500 border-collapse border border-gray-200 shadow-md sm:rounded-lg">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
-                <th class="border border-gray-300 px-4 py-2 text-left">Nom</th>
-                <th class="border border-gray-300 px-4 py-2 text-left">Prénom</th>
                 <th class="border border-gray-300 px-4 py-2 text-left">Email</th>
                 <th class="border border-gray-300 px-4 py-2 text-left">Structure</th>
                 <th class="border border-gray-300 px-4 py-2 text-left">Rôle</th>
-                <th class="border border-gray-300 px-4 py-2 text-left">État</th>
+                <th class="border border-gray-300 px-4 py-2 text-left">Etat</th>
                 <th class="border border-gray-300 px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
-              <tr 
-                v-for="utilisateur in paginatedUtilisateurs" 
-                :key="utilisateur.id" 
-                class="cursor-pointer hover:bg-gray-200 transition-colors duration-200"
-              >
-                <td class="border border-gray-300 px-4 py-1">
-                  <input 
-                    v-model="utilisateur.nom"
-                    :disabled="utilisateur.role != 'Point-Focale' && userInfo.role !='Administrateur'" 
-                    class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white"
-                  />
-                </td>
-                <td class="border border-gray-300 px-4 py-1">
-                  <input 
-                    v-model="utilisateur.prenom" 
-                    :disabled="utilisateur.role != 'Point-Focale' && userInfo.role !='Administrateur'"
-                    class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white"
-                  />
-                </td>
-                <td class="border border-gray-300 px-4 py-1">
-                  <input 
-                    v-model="utilisateur.email" 
-                    :disabled="utilisateur.role != 'Point-Focale' && userInfo.role !='Administrateur'"
-                    class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white"
-                  />
-                </td>
-                <td class="border border-gray-300 px-4 py-1 text-gray-900 dark:text-white">
-                  {{ utilisateur.structure.sigle }}
-                </td>
-                <td class="border border-gray-300 px-4 py-1">
-                  <input 
-                    v-model="utilisateur.role" 
-                    :disabled="utilisateur.role != 'Point-Focale' && userInfo.role !='Administrateur'"
+  <tr 
+    v-for="utilisateur in paginatedUtilisateurs" 
+    :key="utilisateur.id" 
+    class="cursor-pointer hover:bg-gray-200 transition-colors duration-200"
+  >
+    <td class="border border-gray-300 px-4 py-1">
+      <input 
+        v-model="utilisateur.email" 
+        class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white"
+        :disabled="editableRowId !== utilisateur.id"
+      />
+    </td>
+    <td class="border border-gray-300 px-4 py-1 text-gray-900 dark:text-white">
+      {{ utilisateur.structure.sigle }}
+    </td>
+    <td class="border border-gray-300 px-4 py-1">
+      <select 
+        v-model="utilisateur.role" 
+        class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white"
+        :disabled="editableRowId !== utilisateur.id"
+      >
+        <option value="">Veuillez sélectionner le rôle</option>
+        <option value="Administrateur">Administrateur_DEPS</option>
+        <option value="Chef-de-service">Chef-de-service</option>
+        <option value="Responsable-de-structure">Responsable-de-structure</option>
+        <option value="Point-Focale">Point Focale</option>
+        <option value="Ordonateur">Ordonateur</option>
+        <option value="Gestionnaire_Utilisateur">Gestionnaire Utilisateur</option>
+      </select>
+    </td>
+    <td class="border border-gray-300 px-4 py-1">
+      <select  v-model="utilisateur.etat" 
+      class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white"  
+      :disabled="editableRowId !== utilisateur.id">
+        <option value="Actif">Actif</option>
+        <option value="Inactif">Inactif</option>
+      </select>
+    </td>
+    <td class="border border-gray-300 px-0 py-1 flex items-center justify-center space-x-4">
+      <!-- Bouton Modifier -->
+      <button 
+        v-if="editableRowId !== utilisateur.id"
+        @click="editableRowId = utilisateur.id" 
+        class="text-yellow-500 py-1 rounded hover:bg-yellow-100 flex flex-col items-center justify-center"
+        title="Modifier"
+      >
+        <i class="fas fa-edit"></i>
+        <span class="text-xs hidden sm:inline">Modifier</span>
+      </button>
 
-                    class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white"
-                  />
-                </td>
-                <td class="border border-gray-300 px-4 py-1">
-                  <select 
-                    v-model="utilisateur.etat" 
-                    :disabled="utilisateur.role != 'Point-Focale' && userInfo.role !='Administrateur'"
-                    class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white"
-                  >
-                    <option value="actif">Actif</option>
-                    <option value="inactif">Inactif</option>
-                  </select>
-                </td>
-                <td class="border border-gray-300 px-4 py-1 flex items-center space-x-2">
-                  <button 
-                  :disabled="utilisateur.role != 'Point-Focale' && userInfo.role !='Administrateur'"
-                    @click="confirmerModification(utilisateur)" 
-                    class="text-green-700 py-1 rounded hover:bg-green-200 flex flex-col items-center justify-center"
-                    title="Valider la modification"
-                  >
-                    <i class="fas fa-check"></i>
-                    <span class="text-xs hidden sm:inline">Valider</span>
-                  </button>
-                  <button 
-                  :disabled="utilisateur.role != 'Point-Focale' && userInfo.role !='Administrateur'"
-                    @click="resetPassword(utilisateur.id)" 
-                    class="text-red-700 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center"
-                    title="Réinitialiser le mot de passe"
-                  >
-                    <i class="fas fa-key"></i>
-                    <span class="text-xs hidden sm:inline">Réinitialiser</span>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
+      <!-- Bouton Valider -->
+      <button 
+        v-if="editableRowId === utilisateur.id"
+        @click="confirmerModification(utilisateur)" 
+        class="text-green-700 py-1 rounded hover:bg-green-200 flex flex-col items-center justify-center"
+        title="Valider la modification"
+      >
+        <i class="fas fa-check"></i>
+        <span class="text-xs hidden sm:inline">Valider</span>
+      </button>
+
+      <!-- Bouton Annuler -->
+      <button 
+        v-if="editableRowId === utilisateur.id"
+        @click="annulerModification" 
+        class="text-gray-700 py-1 rounded hover:bg-gray-200 flex flex-col items-center justify-center"
+        title="Annuler"
+      >
+        <i class="fas fa-times"></i>
+        <span class="text-xs hidden sm:inline">Annuler</span>
+      </button>
+      <button 
+         v-if="editableRowId !== utilisateur.id"
+          @click="supprimerUtilisateur(utilisateur.id)"  
+          class=" text-red-700 px-3 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center">
+          <i class="fas fa-trash-alt"></i> <!-- Icône de suppression -->
+          <span class="text-red-700 text-xs hidden sm:inline">Supprimer</span>
+      </button>
+      <!-- Bouton Réinitialiser le mot de passe -->
+      <button 
+        v-if="editableRowId !== utilisateur.id"
+        @click="resetPassword(utilisateur.id)" 
+        class="text-red-700 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center"
+        title="Réinitialiser le mot de passe"
+      >
+        <i class="fas fa-key"></i>
+        <span class="text-xs hidden sm:inline">Réinitialiser</span>
+      </button>
+    </td>
+  </tr>
+</tbody>
+
           </table>
         </div>
       </div>
@@ -198,23 +219,22 @@ export default {
       searchQuery: '',
       alertMessage: '',
       isSuccess: false,
-      userInfo: null,
       file: null,
       message: '',
       success: false,
       loading: false,
+      editableRowId: null,
       csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
     };
   },
   mounted() {
     this.fetchUtilisateurs();
-    this.fetchUserInfo();
     // this.fetchStructures();
   },
   computed: {
     filteredUtilisateurs() {
       return this.utilisateurs.filter(utilisateur => 
-        utilisateur.nom.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        utilisateur.role.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
         utilisateur.email.toLowerCase().includes(this.searchQuery.toLowerCase())
       );
     },
@@ -257,26 +277,7 @@ export default {
                 this.loading = false;
             }
         },
-    async fetchUserInfo() {
-  try {
-    const response = await axios.get('/api/user-info', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}` 
-      }
-    });
-
-    this.userInfo = response.data;
-    this.isAdmin = this.userInfo.role === 'Administrateur';
-    this.isInvite = this.userInfo.role === 'Ordonateur';
-    this.isPointFocal = this.userInfo.role === 'Point-Focale';
-    this.isChefService = this.userInfo.role === 'Administrateur';
-    this.userId = this.userInfo.id;
-
-
-  } catch (error) {
-    console.error('Erreur lors de la récupération des informations utilisateur :', error);
-  }
-},
+   
     async fetchUtilisateurs() {
       try {
         const response = await axios.get('/api/utilisateurs', {
@@ -303,30 +304,45 @@ export default {
       }
     },
     async confirmerModification(utilisateur) {
-      if (confirm('Êtes-vous sûr de vouloir modifier cet utilisateur ?')) {
-        try {
-          const response = await axios.put(
-            `/api/utilisateurs/${utilisateur.id}`,
-            {
-              nom: utilisateur.nom,
-              prenom: utilisateur.prenom,
-              email: utilisateur.email,
-              role: utilisateur.role,
-              etat: utilisateur.etat
-            },
-            {
-              headers: {
-                'X-CSRF-TOKEN': this.csrfToken
-              }
-            }
-          );
-          if (response.status === 200) {
-            this.showAlert('Modifications enregistrées avec succès!', true);
-            this.fetchUtilisateurs();
+  console.log("Données envoyées :", utilisateur); // Vérifiez les valeurs
+
+  if (confirm('Êtes-vous sûr de vouloir modifier cet utilisateur ?')) {
+    try {
+      const response = await axios.put(
+        `/api/utilisateurs/${utilisateur.id}`,
+        {
+          email: utilisateur.email,
+          role: utilisateur.role,
+          etat: utilisateur.etat,
+        },
+        {
+          headers: {
+            'X-CSRF-TOKEN': this.csrfToken
           }
+        }
+      );
+
+      if (response.status === 200) {
+        this.showAlert('Modifications enregistrées avec succès!', true);
+        this.fetchUtilisateurs();
+      }
+      this.editableRowId = null;
+    } catch (error) {
+      console.error('Erreur lors de la modification de l\'utilisateur:', error.response ? error.response.data : error);
+      this.showAlert('Erreur lors de la modification de l\'utilisateur. Veuillez réessayer.', false);
+    }
+  }
+},
+    annulerModification() {
+    this.editableRowId = null; // Annule l'édition et rétablit les valeurs initiales
+  },
+  async supprimerUtilisateur(id) {
+      if (confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+        try {
+          await axios.delete(`/api/utilisateurs/supprimer/${id}`);
+          this.utilisateurs = this.utilisateurs.filter((user) => user.id !== id);
         } catch (error) {
-          console.error('Erreur lors de la modification de l\'utilisateur:', error);
-          this.showAlert('Erreur lors de la modification de l\'utilisateur. Veuillez réessayer.', false);
+          console.error("Erreur lors de la suppression :", error);
         }
       }
     },

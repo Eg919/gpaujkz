@@ -27,9 +27,10 @@ return new class extends Migration
             $table->integer('trimestre_3')->nullable();
             $table->integer('trimestre_4')->nullable();
             $table->integer('soumi')->nullable();
-            $table->integer('confirmation_prési')->nullable();
+            $table->integer('confirmation_presi')->nullable();
             $table->integer('reconduir')->nullable();
             $table->string('observation')->nullable();
+            $table->integer('masque')->nullable();
             //rapports activites
             $table->integer('coute_t1')->nullable();
             $table->integer('taux_t1')->nullable();
@@ -54,6 +55,7 @@ return new class extends Migration
             $table->integer('taux_execution_tache')->default(0);
             $table->integer('etat')->default(0);
             $table->integer('reconduir')->nullable();
+            $table->integer('masque')->nullable();
             $table->foreignId('activite_id')->constrained('activites',)->onDelete('cascade'); 
             $table->timestamps();
         });

@@ -35,7 +35,8 @@ class Activite extends Model
         'taux_t3',
         'coute_t4',
         'taux_t4',
-
+        'confirmation_presi',
+        'observation',
         'user_id',
         'effets_attendus_id',
         'objectif_strategique_id',
