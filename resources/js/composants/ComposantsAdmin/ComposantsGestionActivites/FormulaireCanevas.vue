@@ -137,9 +137,12 @@
               <input 
                 v-model="formactivite.finance_etat" 
                 placeholder ="veillez entrer le montant financé par l'état"
+                :value="formattedFinanceEtat" 
+                @input="onInput($event.target.value)"
                 id="financeEtat" 
-                type="number" 
+                type="text" 
                 class="w-full  sm:p-2 border border-gray-300 rounded"
+                required
               />
             </div>
 
@@ -162,20 +165,23 @@
 
             <!-- Montant Partenaire -->
             <div>
-              <label 
-                for="financePartenaire" 
-                class="block text-sm sm:text-base text-gray-700 font-medium mb-2"
-              >
-                Partenaire : Montant
-              </label>
-              <input 
-                v-model="formactivite.finance_partenaire" 
-                placeholder ="veillez entrer le montant financé par le partenaire"
-                id="financePartenaire" 
-                type="number" 
-                class="w-full  sm:p-2 border border-gray-300 rounded"
-              />
-            </div>
+            <label 
+              for="financePartenaire" 
+              class="block text-sm sm:text-base text-gray-700 font-medium mb-2"
+            >
+              Partenaire : Montant
+            </label>
+            <input 
+              v-if="formactivite.partenaire"
+              :value="formattedFinancePartenaire" 
+              @input="onInput($event.target.value)"
+              placeholder="veillez entrer le montant financé par le partenaire"
+              id="financePartenaire" 
+              type="text"
+              class="w-full sm:p-2 border border-gray-300 rounded"
+              required
+            />
+          </div>
           </div>
         </fieldset>
       </div>
@@ -342,7 +348,28 @@ export default {
       ]
     };
   },
+  computed: {
+    formattedFinanceEtat() {
+      if (!this.formactivite.finance_etat) return ''
+      // Format avec espace tous les 3 chiffres, en partant de la droite
+      return this.formactivite.finance_etat.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+    },
+    formattedFinancePartenaire() {
+      if (!this.formactivite.finance_partenaire) return ''
+      // Format avec espace tous les 3 chiffres, en partant de la droite
+      return this.formactivite.finance_partenaire.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+    }
+  },
   methods: {
+
+   onInput(value) {
+      // Supprime espaces pour ne garder que les chiffres
+      const numericValue = value.replace(/\s+/g, '')
+      if (/^\d*$/.test(numericValue)) {
+        this.formactivite.finance_partenaire = numericValue
+      }
+    },
+
     async fetchObjectifs() {
       this.loading = true;
       this.error = null;

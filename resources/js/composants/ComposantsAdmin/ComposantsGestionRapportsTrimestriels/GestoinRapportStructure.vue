@@ -185,7 +185,7 @@ export default {
     async fetchActivites(effetId) {
   try {
     // Envoi de la requête pour récupérer les activités liées à un effet
-    const response = await axios.get(`/api/activites-effet/${effetId}`);
+    const response = await axios.get(`/api/activites-effet/${effetId}/st`);
     console.log(`Activités pour l'effet ${effetId}:`, response.data);
 
     // Vérifier si la réponse est un tableau

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('table_name'); // Nom de la table concernée
             $table->json('old_values')->nullable(); // Valeurs avant modification
             $table->json('new_values')->nullable(); // Valeurs après modification
-            $table->AddressMail('address_mail')->nullable(); // Adresse IP de l'utilisateur
+            $table->string('address_mail')->nullable(); // Adresse IP de l'utilisateur
             $table->timestamps();
         });
     }

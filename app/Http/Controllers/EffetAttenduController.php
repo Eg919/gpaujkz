@@ -75,7 +75,7 @@ class EffetAttenduController extends Controller
     public function supprimerEffet($id)
     {
         $effet = EffetAttendu::findOrFail($id);
-$activites=Activite::where('effet_attendu_id',$id)->get();
+$activites=Activite::where('effets_attendus_id',$id)->get();
 
 if(count($activites)>0){
     return response()->json(['message' => 'Impossible de supprimer cet effet attendu car il est associé à des activités'], 400);

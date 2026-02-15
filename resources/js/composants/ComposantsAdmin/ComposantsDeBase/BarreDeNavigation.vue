@@ -15,7 +15,7 @@
       </router-link>
 
       <!-- Menu Activités avec sous-menus -->
-      <div v-if="isAdmin || isPointFocal || isChefService || isResponsable" class="relative">
+      <div v-if="isAdmin || isPointFocal || isChefService || isResponsable || isInvite" class="relative">
         <div
           @click="toggleActiviteMenu"
           class="text-white mr-4 sm:mr-6 md:mr-8 hover:text-yellow-500 cursor-pointer"
@@ -75,7 +75,7 @@
       </div>
       
       <!-- Suivi -->
-      <div v-if="isAdmin || isInvite || isChefService || isResponsable" class="relative">
+      <div v-if="isAdmin || isInvite || isChefService || isResponsable||isPointFocal" class="relative">
         <div
           @click="toggleSuiviMenu"
           class="text-white mr-4 sm:mr-6 md:mr-8 hover:text-yellow-500 cursor-pointer"

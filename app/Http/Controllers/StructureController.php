@@ -29,7 +29,7 @@ class StructureController extends Controller
     // Validation des données d'entrée
     $validated = $request->validate([
         'libelle_structure' => 'required|string|max:255',
-        'sigle' => 'required|string|max:10',
+        'sigle' => 'required|string|max:50',
         'etat' => 'required|string|max:50',
     ]);
 
