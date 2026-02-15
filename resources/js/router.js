@@ -64,13 +64,13 @@ const routes = [
     path: '/select-rapport',
     name:'SelectRapportTrimestriel',
     component:SelectRapportTrimestriel,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
   },
   {
     path: '/rapport',
     name:'GestoinRapport',
     component: GestoinRapport,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
   },
   {
     path: '/rapport-structure',
@@ -82,25 +82,25 @@ const routes = [
     path: '/rapports-trimestriels',
     name:'GestoinRapportTrimestriel1',
     component:GestoinRapportTrimestriel1,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
   },
   {
     path: '/rapports-trimestriels',
     name:'GestoinRapportTrimestriel2',
     component:GestoinRapportTrimestriel2,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
   },
   {
     path: '/rapports-trimestriels',
     name:'GestoinRapportTrimestriel3',
     component:GestoinRapportTrimestriel3,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
   },
   {
     path: '/rapports-trimestriels',
     name:'GestoinRapportTrimestriel4',
     component:GestoinRapportTrimestriel4,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
   },
   {
     path: '/statistiques',
@@ -143,7 +143,7 @@ const routes = [
     path: '/programmes-activites',
     name: 'GestionProgrammesActivites',
     component: GestionProgrammesActivites,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
   },
   {
     path: '/programmes-activites-structure',
@@ -189,14 +189,14 @@ const routes = [
     path: '/confirmation-activites',
     name: 'GestionConfirmationActivites',
     component: GestionConfirmationActivites,
-    meta: { requiresAuth: true, role: 'Ordonateur' }
+    meta: { requiresAuth: true, role: 'Ordonnateur' }
   },
   {
     path: '/programmes-activites/:id?',
     name: 'GestionProgrammesActivites',
     component: GestionProgrammesActivites,
     props: true,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonateur'] }
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
   },
 ];
 

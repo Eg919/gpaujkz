@@ -85,8 +85,8 @@
                     @change="updateEtatActiviteSelection(activite)"
                   >
                     <option value="Preselectionné">Préselectionné</option>
-                    <option v-if="!isChefService" value="Selectionné">Sélectionné</option>
-                    <option v-if="!isChefService" value="Validé">Validé</option>
+                    <option value="Selectionné">Sélectionné</option>
+                    <option value="Validé">Validé</option>
                     <option value="Rejeté">Rejeté</option>
                   </select>
                 </div>
@@ -183,8 +183,8 @@
                     @change="updateEtatActiviteSelection(activite)"
                   >
                     <option value="Preselectionné">Préselectionnée</option>
-                    <option v-if="!isChefService" value="Selectionné">Sélectionnée</option>
-                    <option v-if="!isChefService" value="Validé">Validée</option>
+                    <option value="Selectionné">Sélectionnée</option>
+                    <option value="Validé">Validée</option>
                     <option value="Rejeté">Rejeté</option>
                   </select>
                   <button 
@@ -310,7 +310,7 @@ export default {
         const searchQuery = this.searchQuery.toLowerCase();
         // Vérifier à la fois le libellé et le sigle de la structure
         return (
-          activite.libelle?.toLowerCase().includes(searchQuery) ||
+         // activite.libelle?.toLowerCase().includes(searchQuery) ||
           activite.structure_sigle?.toLowerCase().includes(searchQuery)
         );
       });

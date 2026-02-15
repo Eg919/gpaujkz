@@ -85,7 +85,7 @@ class SessionActiviteController extends Controller
     // Créer une notification pour chaque utilisateur
     foreach ($users as $user) {
         $article='Le';
-        if($user->role=='Ordonateur'){
+        if($user->role=='Ordonnateur'){
             $article="L'";
         }
         $messageContent = "Bonjour Monsieur/Madame {$article} {$user->role}, 
@@ -160,7 +160,7 @@ class SessionActiviteController extends Controller
         // Notification aux utilisateurs
         $users = User::whereNotIn('role', ['Administrateur'])->get();
         foreach ($users as $user) {
-            $article = ($user->role == 'Ordonateur') ? "L'" : "Le";
+            $article = ($user->role == 'Ordonnateur') ? "L'" : "Le";
             $messageContent = "Bonjour Monsieur/Madame {$article} {$user->role},\n\n"
                 . "La fin de la session de proposition des projets d'activité pour l'année {$request->annee} "
                 . "a été repoussée au {$request->date_fin}.";

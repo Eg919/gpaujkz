@@ -93,9 +93,10 @@
                   <td class="py-2 px-2 sm:px-4 border text-xs sm:text-sm md:text-base hidden md:table-cell">
                     {{ activite.indicateurs[0]?.cible || '' }}
                   </td>
-                  <td class="py-2 px-2 sm:px-4 border text-xs sm:text-sm md:text-base">
-                    {{ calculerSommeFinances(activite) }}
-                  </td>
+                 <td class="py-2 px-2 sm:px-4 border text-xs sm:text-sm md:text-base">
+                    {{ formatNombreAvecEspaces(calculerSommeFinances(activite)) }}
+                 </td>
+
                   <td 
                     v-for="trimestre in [1, 2, 3, 4]" 
                     :key="trimestre" 
@@ -113,7 +114,7 @@
               <tr class="bg-orange-100">
                 <td colspan="11" class="py-2 px-2 sm:px-4 border font-semibold text-xs sm:text-sm md:text-base">
                   Objectif opérationnel {{ `${index + 1}.${indexEffet + 1}` }}:
-                  <span class="ml-2 text-gray-700">(Total: {{ calculerSommeFinancesEffet(effet) }})</span>
+                  <span class="ml-2 text-gray-700">(Total: {{ formatNombreAvecEspaces(calculerSommeFinancesEffet(effet)) }})</span>
                 </td>
               </tr>
             </template>
@@ -122,7 +123,7 @@
             <tr class="bg-yellow-100">
               <td colspan="11" class="py-2 px-2 sm:px-4 border font-semibold text-xs sm:text-sm md:text-base">
                 Objectif stratégique {{ index + 1 }}:
-                <span class="ml-2 text-gray-700">(Total: {{ calculerSommeFinancesObjectif(objectif) }})</span>
+                <span class="ml-2 text-gray-700">(Total: {{ formatNombreAvecEspaces(calculerSommeFinancesObjectif(objectif)) }})</span>
               </td>
             </tr>
           </template>
@@ -130,7 +131,7 @@
           <!-- Ligne Total général du programme -->
           <tr>
             <td colspan="11" class="py-2 px-2 sm:px-4 border font-semibold text-xs sm:text-sm md:text-base">
-              <span class="ml-2 text-gray-700">(Total du programme d'activite: {{ calculerSommeProgrammeActivite() }})</span>
+              <span class="ml-2 text-gray-700">(Total du programme d'activite: {{ formatNombreAvecEspaces(calculerSommeProgrammeActivite()) }})</span>
             </td>
           </tr>
         </tbody>
@@ -166,9 +167,13 @@ export default {
           console.error('Erreur lors de la récupération de la session en cours :', error);
         }
       },
-      calculerSommeFinances(activite) {
-  return (+activite.finance_partenaire || 0) + (+activite.finance_etat || 0);
-},
+    formatNombreAvecEspaces(valeur) {
+    if (valeur == null || valeur === '') return '0'
+    return valeur.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+   },
+    calculerSommeFinances(activite) {
+      return (+activite.finance_partenaire || 0) + (+activite.finance_etat || 0);
+    },
 calculerSommeFinancesEffet(effet) {
   return effet.activites.reduce(
     (somme, activite) =>

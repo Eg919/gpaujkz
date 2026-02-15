@@ -853,7 +853,7 @@ public function confirmationPresi(Request $request, $id)
 
         if ($user) {
             $article ='Le';
-            if ($user->role =='Administrateur'|| $user->role =='Ordonateur') {
+            if ($user->role =='Administrateur'|| $user->role =='Ordonnateur') {
                 $article = 'La';
             }
             $messageContent = "Bonjour Monsieur/Madame $article {$user->role}, votre activité '{$activite->libelle}' a été validée.";
@@ -958,9 +958,9 @@ public function supprimerActivite($id)
     if (!$taches->isEmpty() ) {
         return response()->json(['message' => 'Impossible de supprimer l\'activité car des tâches y sont associées.'], 400);
     }
-if ($activite->confirmation_presi == 1) {
-    return response()->json(['message' => 'Impossible de supprimer l\'activité car elle a été validée.'], 400);
-}
+// if ($activite->confirmation_presi == 1) {
+//     return response()->json(['message' => 'Impossible de supprimer l\'activité car elle a été validée.'], 400);
+// }
     $activite->delete();
 
     return response()->json(['message' => 'Activité supprimée avec succès.'], 200);

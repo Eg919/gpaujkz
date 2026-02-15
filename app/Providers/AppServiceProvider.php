@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
             $structure = Structure::create([
                 'libelle_structure' => 'Direction des Études, de la Planification et des Statistiques',
                 'sigle' => 'DEPS',
-                'etat' => 'actif'
+                'etat' => 'Actif'
             ]);
         }
 
@@ -51,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
                 'email' => 'gpaujkz@gmail.com',
                 'password' => Hash::make($motDePasse),
                 'role' => 'Administrateur_DSI',
-                'etat' => 'actif',
+                'etat' => 'Actif',
                 'structure_id' => $structure->id, // Associer la structure
             ]);
 

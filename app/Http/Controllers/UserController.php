@@ -96,7 +96,7 @@ class UserController extends Controller
             Log::info('User créé:', $user->toArray());
             // Envoi d'un e-mail à l'utilisateur
             $article='Le';
-            if($user->role=='Administrateur'||$user->role=='Ordonateur'){
+            if($user->role=='Administrateur'||$user->role=='Ordonnateur'){
                 $article="L'";
             }
             $messageContent = "Bonjour Monsieur/Madame $article {$user->role}, bienvenue sur notre plateforme ! votre mot de passe par défaut est : $motDePasse que vous allez change à la première connexion.";
@@ -172,7 +172,7 @@ class UserController extends Controller
             $user->password = Hash::make($motDePasse);
             $user->save();
             $article='Le';
-            if($user->role=='Administrateur'||$user->role=='Ordonateur'){
+            if($user->role=='Administrateur'||$user->role=='Ordonnateur'){
                 $article="L'";
             }
             $messageContent = "Bonjour Monsieur/Madame $article {$user->role}, votre mot de passe a ete restorer avec sucess.  Utilise le mot de passe par défaut est : $motDePasse que vous allez change à la première connexion. ";

@@ -193,10 +193,12 @@
             <label class="block text-gray-700 text-sm sm:text-base">État Financier</label>
             <input
               :disabled="isInvite || isSession"
-              v-model.number="activite.etat_financier"
-              type="number"
+              :value="formatNombreAvecEspaces(activite.etat_financier)"
+              @input="onInputEtatFinancier($event.target.value)"
+              type="text"
               class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-400 text-sm sm:text-base"
             />
+
             <button
               :disabled="isInvite || isSession"
               class="w-full py-2 bg-green-700 text-xl text-white rounded-lg hover:bg-green-500 hover:text-yellow-500 rounded-lg hover:bg-green-500"
@@ -329,6 +331,19 @@
   },
 
   methods: {
+    // Formate le nombre avec des espaces tous les 3 chiffres
+  formatNombreAvecEspaces(valeur) {
+    if (!valeur) return ''
+    return valeur.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+  },
+
+  // Gère la saisie utilisateur
+  onInputEtatFinancier(valeur) {
+    const chiffreNet = valeur.replace(/\s+/g, '') // Enlève les espaces
+    if (/^\d*$/.test(chiffreNet)) {
+      this.activite.etat_financier = Number(chiffreNet)
+    }
+  },
    async mettreAjourObservation() {
     if (!confirm("Êtes-vous sûr de vouloir mettre à jour l'observation de l'activité ?")) {
                 return;
@@ -556,7 +571,7 @@
         this.userInfo = response.data;
         this.isPointFocal=this.userInfo.role === 'Point-Focale';
         this.isAdmin = this.userInfo.role === 'Administrateur';
-        this.isInvite = this.userInfo.role === 'Ordonateur';
+        this.isInvite = this.userInfo.role === 'Ordonnateur';
       } catch (error) {
         this.showAlert('Erreur lors de la récupération des informations utilisateur :', false);
       }

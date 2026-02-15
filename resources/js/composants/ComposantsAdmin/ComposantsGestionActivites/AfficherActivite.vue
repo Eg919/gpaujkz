@@ -24,7 +24,7 @@
             <span class="font-medium text-gray-800">Etat Activité :</span>
             <span
               :class="{
-                'text-yellow-300': activite.etat_activite === 'Ouvert',
+                'text-yellow-300': activite.etat_activite === 'En_Cours',
                 'text-green-500': activite.etat_activite === 'terminer',
                 'text-red-500': activite.etat_activite === 'abandonner',
               }"
@@ -66,7 +66,8 @@
           <li class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <span class="font-medium text-gray-800">Montant Partenaire :</span>
             <span class="text-gray-700 mt-1 sm:mt-0">
-              {{ defaultValue(activite.finance_partenaire) }}
+              {{ formatNombreAvecEspaces(defaultValue(activite.finance_partenaire)) }}
+
             </span>
           </li>
           <li class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
@@ -78,7 +79,7 @@
           <li class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <span class="font-medium text-gray-800">Montant État :</span>
             <span class="text-gray-700 mt-1 sm:mt-0">
-              {{ defaultValue(activite.finance_etat) }}
+              {{ formatNombreAvecEspaces(defaultValue(activite.finance_etat)) }}
             </span>
           </li>
           <li class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
@@ -165,9 +166,18 @@ export default {
     };
   },
   computed: {
-    defaultValue() {
-      return (value, fallback = "Non renseigné") => value || fallback;
+    // defaultValue() {
+    //   return (value, fallback = "Non renseigné") => value || fallback;
+    // },
+
+    formatNombreAvecEspaces(valeur) {
+      if (!valeur) return '0'
+      return valeur.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
     },
+    defaultValue(valeur) {
+      return valeur ?? '0'
+    }
+
   },
   methods: {
     async fetchDetails() {

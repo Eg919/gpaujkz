@@ -170,7 +170,7 @@ class TacheController extends Controller
     } elseif ($toutesTachesTerminees) {
         $nouvelEtat = 'terminer';
          // Récupérer tous les utilisateurs dont le rôle est 'Administrateur' ou 'Invité'
-        $utilisateurs = User::whereIn('role', ['Administrateur', 'Ordonateur','Chef-de-service'])->get();
+        $utilisateurs = User::whereIn('role', ['Administrateur', 'Ordonnateur','Chef-de-service'])->get();
 
         // Créer une notification pour chaque utilisateur
         foreach ($utilisateurs as $user) {
