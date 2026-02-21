@@ -8,6 +8,11 @@
     <link rel="icon" type="image/png" href="{{ asset('images/ujkz.jpg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body id="app" class="bg-gray-100 w-screen h-screen overflow-hidden">
+<body class="bg-gray-100 w-screen h-screen overflow-hidden">
+    <div id="app">
+        <div class="flex items-center justify-center min-h-screen text-gray-600">
+            Chargement de l'application…
+        </div>
+    </div>
 </body>
 </html>

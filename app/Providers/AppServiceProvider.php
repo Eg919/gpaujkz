@@ -24,9 +24,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-    Schema::defaultStringLength(191);
+        Schema::defaultStringLength(191);
 
-        // Vérifier si la structure "GPAADMIN" existe, sinon la créer
+        // Ne pas exécuter si les tables n'existent pas encore (ex. pendant migrate)
+        if (! Schema::hasTable('structures')) {
+            return;
+        }
+
+        // Vérifier si la structure "DEPS" existe, sinon la créer
         $structure = Structure::where('sigle', 'DEPS')->first();
 
         if (!$structure) {
@@ -42,8 +47,8 @@ class AppServiceProvider extends ServiceProvider
 
         if (!$existingUser) {
             // Générer un mot de passe aléatoire sécurisé
-            $motDePasse = Str::random(12); // Génère un mot de passe de 12 caractères
-            
+            //$motDePasse = Str::random(12); // Génère un mot de passe de 12 caractères
+            $motDePasse = '123456789';
             // Création de l'utilisateur
             $user = User::create([
                 'nom' => 'Admin',

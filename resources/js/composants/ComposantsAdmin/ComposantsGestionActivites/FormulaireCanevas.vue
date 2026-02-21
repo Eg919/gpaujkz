@@ -135,10 +135,9 @@
                 État : Montant
               </label>
               <input 
-                v-model="formactivite.finance_etat" 
-                placeholder ="veillez entrer le montant financé par l'état"
                 :value="formattedFinanceEtat" 
-                @input="onInput($event.target.value)"
+                placeholder ="veillez entrer le montant financé par l'état"
+                @input="onInputFinanceEtat($event.target.value)"
                 id="financeEtat" 
                 type="text" 
                 class="w-full  sm:p-2 border border-gray-300 rounded"
@@ -174,7 +173,7 @@
             <input 
               v-if="formactivite.partenaire"
               :value="formattedFinancePartenaire" 
-              @input="onInput($event.target.value)"
+              @input="onInputFinancePartenaire($event.target.value)"
               placeholder="veillez entrer le montant financé par le partenaire"
               id="financePartenaire" 
               type="text"
@@ -362,8 +361,13 @@ export default {
   },
   methods: {
 
-   onInput(value) {
-      // Supprime espaces pour ne garder que les chiffres
+    onInputFinanceEtat(value) {
+      const numericValue = value.replace(/\s+/g, '')
+      if (/^\d*$/.test(numericValue)) {
+        this.formactivite.finance_etat = numericValue
+      }
+    },
+    onInputFinancePartenaire(value) {
       const numericValue = value.replace(/\s+/g, '')
       if (/^\d*$/.test(numericValue)) {
         this.formactivite.finance_partenaire = numericValue
