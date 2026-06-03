@@ -116,6 +116,16 @@ class SessionActiviteController extends Controller
                 'message' => 'Session non trouvée.',
             ], 404);
         }
+
+        if ($session->etat === 'Clôturé') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Cette session est clôturée et ne peut plus être modifiée.',
+            ], 403);
+        }
+
+        // Garder l'ancienne date pour comparaison
+        $ancienneDateFin = $session->date_fin;
     
         // Validation des données
         $validator = Validator::make($request->all(), [
@@ -144,9 +154,7 @@ class SessionActiviteController extends Controller
                 } else {
                     $sessionsOuverte->update(['etat' => 'Clôturé']);
                 }
-                # code...
             }
-            
         }
     
         // Mise à jour de la session avec les nouvelles données
@@ -157,16 +165,26 @@ class SessionActiviteController extends Controller
             'etat' => $request->etat,
         ]);
     
-        // Notification aux utilisateurs
-        $users = User::whereNotIn('role', ['Administrateur'])->get();
-        foreach ($users as $user) {
-            $article = ($user->role == 'Ordonnateur') ? "L'" : "Le";
-            $messageContent = "Bonjour Monsieur/Madame {$article} {$user->role},\n\n"
-                . "La fin de la session de proposition des projets d'activité pour l'année {$request->annee} "
-                . "a été repoussée au {$request->date_fin}.";
-    
-            // Envoi d'e-mails en tâche de fond
-            EmailService::sendEmail($user->email, $messageContent);
+        // Notification aux utilisateurs si la date de fin a été repoussée
+        if ($request->date_fin > $ancienneDateFin) {
+            try {
+                $users = User::whereNotIn('role', ['Administrateur'])->get();
+                foreach ($users as $user) {
+                    $article = ($user->role == 'Ordonnateur') ? "L'" : "Le";
+                    $messageContent = "Bonjour Monsieur/Madame {$article} {$user->role},\n\n"
+                        . "La fin de la session de proposition des projets d'activité pour l'année {$request->annee} "
+                        . "a été repoussée au {$request->date_fin}.";
+            
+                    // On enveloppe l'envoi d'email individuel pour éviter qu'une erreur bloque tout
+                    try {
+                        EmailService::sendEmail($user->email, $messageContent);
+                    } catch (\Exception $e) {
+                        \Log::error("Erreur lors de l'envoi d'email à {$user->email} : " . $e->getMessage());
+                    }
+                }
+            } catch (\Exception $e) {
+                \Log::error("Erreur globale lors de la notification des utilisateurs : " . $e->getMessage());
+            }
         }
     
         return response()->json([

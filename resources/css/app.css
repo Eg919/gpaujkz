@@ -5,3 +5,124 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Styles pour l'exportation PDF PREMIUM */
+.pdf-export-active {
+    background: white !important;
+    color: #0c0a09 !important; /* Stone 950 */
+    padding: 0 !important;
+    overflow: visible !important; /* Crucial pour html2pdf */
+}
+
+/* Forcer le conteneur principal à être splittable */
+.pdf-export-active div, 
+.pdf-export-active section, 
+.pdf-export-active article {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+}
+
+/* En-tête officiel plus compact pour le PDF */
+.pdf-export-active .official-header .p-8 {
+    padding: 10px 20px !important;
+}
+
+.pdf-export-active .official-header .mt-8 {
+    margin-top: 10px !important;
+}
+
+.pdf-export-active .official-header .mb-6 {
+    margin-bottom: 5px !important;
+}
+
+/* Titre du rapport plus compact pour le PDF */
+.pdf-export-active .bg-white.p-6.flex {
+    padding: 10px 20px !important;
+}
+
+/* Laisser les styles de table être gérés par les classes Vue/Tailwind en ligne */
+
+.pdf-export-active thead {
+    display: table-header-group !important; /* Répéter l'entête sur chaque page */
+}
+
+/* Empêcher les coupures de lignes au milieu d'une cellule */
+.pdf-export-active tr {
+    page-break-inside: avoid !important;
+}
+
+/* Table de signature "Roc" - Aucune bordure */
+.pdf-export-active .signature-table-roc,
+.pdf-export-active .signature-table-roc tr,
+.pdf-export-active .signature-table-roc td {
+    border: none !important;
+    background: transparent !important;
+}
+
+.pdf-export-active .signature-box-protected-roc {
+    display: inline-block !important; 
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+
+.pdf-export-active .signature-block-container {
+    margin-top: 15px !important; 
+    padding-top: 5px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    display: block !important;
+}
+
+.pdf-export-active .signature-block-container * {
+    page-break-inside: avoid !important;
+}
+
+.pdf-export-active *:not(h1, h2, h3, h4, h5, h6, .OfficialHeader, .official-header *, .official-header) {
+    position: static !important;
+}
+
+.pdf-export-active .sticky {
+    position: static !important;
+}
+
+/* ==========================================================
+   STYLES POUR L'IMPRESSION NATIVE DU NAVIGATEUR (window.print)
+   ========================================================== */
+@media print {
+  @page {
+    size: A3 landscape;
+    margin: 15mm;
+  }
+
+  body {
+    background-color: white !important;
+  }
+
+  /* Force l'impression des couleurs de fond (très important pour les tableaux) et empêche les coupures */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    overflow: visible !important;
+  }
+
+  /* Reset des hauteurs fixes et des conteneurs Flex pour l'impression multi-pages */
+  html, body, #app, main, .gestion-historiques, .pdf-export-zone, .overflow-auto {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    display: block !important;
+    position: relative !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Empêcher les coupures de lignes au milieu d'un tableau */
+  tr {
+    page-break-inside: avoid !important;
+  }
+  
+  .signature-block-container {
+      page-break-inside: avoid !important;
+  }
+}

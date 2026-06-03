@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class NotificationActivite extends Model
+class NotificationActivite extends Model implements \OwenIt\Auditing\Contracts\Auditable
 {
-    use HasFactory;
+    use HasFactory, \OwenIt\Auditing\Auditable;
 
     // Définir la table associée (optionnel si le nom suit la convention Laravel)
     protected $table = 'notifications_activites';

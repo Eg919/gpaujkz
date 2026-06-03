@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Tache extends Model
+class Tache extends Model implements \OwenIt\Auditing\Contracts\Auditable
 {
-    use HasFactory;
+    use HasFactory, \OwenIt\Auditing\Auditable;
 
     protected $table = 'taches';
 
@@ -23,5 +23,11 @@ class Tache extends Model
     public function activite()
     {
         return $this->belongsTo(Activite::class, 'activite_id');
+    }
+
+    // Relation avec les pièces justificatives
+    public function piecesJustificatives()
+    {
+        return $this->hasMany(PieceJustificative::class, 'tache_id');
     }
 }

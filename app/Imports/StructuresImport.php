@@ -2,23 +2,55 @@
 namespace App\Imports;
 
 use App\Models\Structure;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
+use Illuminate\Support\Collection;
 
-class StructuresImport implements ToModel, WithHeadingRow
+class StructuresImport implements ToCollection, WithHeadingRow, WithValidation, WithCustomCsvSettings
 {
-    public function model(array $row)
-{
-    if (!isset($row['libelle_structure'], $row['sigle'], $row['etat'])) {
-        return null; // Ignore les lignes invalides
+    private $rowCount = 0;
+
+    public function getCsvSettings(): array
+    {
+        return [
+            'delimiter' => ';'
+        ];
     }
 
-    return new Structure([
-        'libelle_structure' => $row['libelle_structure'],
-        'sigle' => $row['sigle'],
-        'etat' => $row['etat'],
-    ]);
-}
+    public function collection(Collection $rows)
+    {
+        foreach ($rows as $row) {
+            $structure = Structure::where('sigle', $row['sigle'])->first();
 
+            if (!$structure) {
+                Structure::create([
+                    'libelle_structure' => $row['libelle_structure'],
+                    'sigle' => $row['sigle'],
+                    'etat' => $row['etat'] ?? 'Actif',
+                ]);
+                $this->rowCount++;
+            } else {
+                $structure->update([
+                    'libelle_structure' => $row['libelle_structure'],
+                    'etat' => $row['etat'] ?? $structure->etat,
+                ]);
+            }
+        }
+    }
+
+    public function rules(): array
+    {
+        return [
+            'libelle_structure' => 'required|string',
+            'sigle' => 'required|string',
+        ];
+    }
+    
+    public function getRowCount()
+    {
+        return $this->rowCount;
+    }
 }
 

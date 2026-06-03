@@ -1,202 +1,168 @@
 <template>
-  <div class="flex flex-col items-center min-h-screen mt-2">
-    <!-- Conteneur principal avec scroll vertical au-delà de 100vh -->
-    <div class="w-full max-h-screen overflow-y-auto md:overflow-visible">
-      <!-- Header -->
-      <div class="flex justify-between items-center w-full px-4 md:px-6 py-2 bg-gray-50 shadow-md mt-8">
-        <!-- Retour -->
-        <div class="flex items-center space-x-1">
-          <router-link to="/admin" class="text-blue-500 flex items-center">
-            <i class="fas fa-arrow-left text-lg"></i>
-            <span class="ml-1 text-xs sm:text-sm md:text-base hidden sm:inline">Retour</span>
-          </router-link>
-        </div>
-        <!-- Titre centralisé -->
-        <div class="flex-grow text-center">
-          <h2 class="text-red-500 font-semibold truncate">
-            <span class="block text-xs sm:text-sm md:text-xl lg:text-4xl">
-              Gestion des Utilisateurs
-            </span>
-          </h2>
-        </div>
-       
-        <!-- Bouton Ajouter Utilisateur -->
-        <div class="flex items-center space-x-1">
-          <button 
-            @click="accederFormulaireCreation" 
-            class="bg-green-500 text-white px-3 py-1.5 rounded shadow-md"
-            title="Créer un Utilisateur"
-          >
-            <i class="fas fa-plus text-lg"></i> 
-            <span class="hidden sm:inline text-xs sm:text-sm md:text-base">Utilisateur</span>
-          </button>
-        </div>
+  <div class="flex flex-col items-center min-h-screen bg-gray-50/50 pb-12">
+    <!-- Header (Sober Style) -->
+    <div class="w-full bg-gray-50 shadow-md border-b border-gray-200 py-3 px-4 md:px-8 flex items-center mb-8">
+      <div class="w-1/4">
+        <router-link to="/admin" class="text-blue-500 hover:text-blue-700 transition-colors flex items-center gap-2">
+          <i class="fas fa-arrow-left text-xl"></i>
+          <span class="text-xs font-bold uppercase hidden md:inline">Retour</span>
+        </router-link>
       </div>
+      <div class="w-2/4 text-center">
+        <h1 class="text-xl md:text-2xl font-black text-amber-500 uppercase tracking-tighter">Gestion des Utilisateurs</h1>
+      </div>
+      <div class="w-1/4 flex justify-end">
+        <button 
+          @click="accederFormulaireCreation" 
+          class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg shadow-sm transition-all active:scale-95 flex items-center gap-2 font-bold text-sm"
+        >
+          <i class="fas fa-user-plus text-xs"></i> 
+          <span class="hidden md:inline">Nouvel Utilisateur</span>
+          <span class="md:hidden">Utilisateur</span>
+        </button>
+      </div>
+    </div>
 
-      <!-- Contenu principal -->
-      <div class="w-full mt-4 px-4 md:px-6">
-        <!-- Barre de recherche -->
-        <div class="mb-4 flex flex-col justify-between md:flex-row items-center space-y-2 md:space-y-0 md:space-x-2">
+    <!-- Filtres et Recherche -->
+    <div class="w-full max-w-[99%] mx-auto px-4 md:px-8 mb-6">
+      <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="relative w-full md:w-96">
+          <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
           <input 
             type="text" 
             v-model="searchQuery" 
-            placeholder="Rechercher un utilisateur..." 
-            class="border border-gray-300 px-4 py-2 rounded shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 w-full md:w-auto"
+            placeholder="Rechercher par email, rôle..." 
+            class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-medium text-gray-600 transition-all"
           />
-          <div class="mx-2">
-            <input type="file" @change="handleFileUpload" class="p-2 border rounded w-full md:w-auto mx-2">
-            <button 
-              @click="uploadFile" 
-              :disabled="loading"
-              class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 w-full md:w-auto">
-              {{ loading ? 'Importation en cours...' : 'Importer' }}
-            </button>
-          </div>
-          
         </div>
 
-
-        <!-- Tableau -->
-        <div class="w-full overflow-x-auto md:overflow-visible">
-          <table class="w-full text-sm text-left text-gray-500 border-collapse border border-gray-200 shadow-md sm:rounded-lg">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-              <tr>
-                <th class="border border-gray-300 px-4 py-2 text-left">Email</th>
-                <th class="border border-gray-300 px-4 py-2 text-left">Structure</th>
-                <th class="border border-gray-300 px-4 py-2 text-left">Rôle</th>
-                <th class="border border-gray-300 px-4 py-2 text-left">Etat</th>
-                <th class="border border-gray-300 px-4 py-2 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-  <tr 
-    v-for="utilisateur in paginatedUtilisateurs" 
-    :key="utilisateur.id" 
-    class="cursor-pointer hover:bg-gray-200 transition-colors duration-200"
-  >
-    <td class="border border-gray-300 px-4 py-1">
-      <input 
-        v-model="utilisateur.email" 
-        class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white"
-        :disabled="editableRowId !== utilisateur.id"
-      />
-    </td>
-    <td class="border border-gray-300 px-4 py-1 text-gray-900 dark:text-white">
-      {{ utilisateur.structure.sigle }}
-    </td>
-    <td class="border border-gray-300 px-4 py-1">
-      <select 
-        v-model="utilisateur.role" 
-        class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white"
-        :disabled="editableRowId !== utilisateur.id"
-      >
-        <option value="">Veuillez sélectionner le rôle</option>
-        <option value="Administrateur">Administrateur_DEPS</option>
-        <option value="Chef-de-service">Chef-de-service</option>
-        <option value="Responsable-de-structure">Responsable-de-structure</option>
-        <option value="Point-Focale">Point Focale</option>
-        <option value="Ordonnateur">Ordonnateur</option>
-        <option value="Gestionnaire_Utilisateur">Gestionnaire Utilisateur</option>
-      </select>
-    </td>
-    <td class="border border-gray-300 px-4 py-1">
-      <select  v-model="utilisateur.etat" 
-      class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white"  
-      :disabled="editableRowId !== utilisateur.id">
-        <option value="Actif">Actif</option>
-        <option value="Inactif">Inactif</option>
-      </select>
-    </td>
-    <td class="border border-gray-300 px-0 py-1 flex items-center justify-center space-x-4">
-      <!-- Bouton Modifier -->
-      <button 
-        v-if="editableRowId !== utilisateur.id"
-        @click="editableRowId = utilisateur.id" 
-        class="text-yellow-500 py-1 rounded hover:bg-yellow-100 flex flex-col items-center justify-center"
-        title="Modifier"
-      >
-        <i class="fas fa-edit"></i>
-        <span class="text-xs hidden sm:inline">Modifier</span>
-      </button>
-
-      <!-- Bouton Valider -->
-      <button 
-        v-if="editableRowId === utilisateur.id"
-        @click="confirmerModification(utilisateur)" 
-        class="text-green-700 py-1 rounded hover:bg-green-200 flex flex-col items-center justify-center"
-        title="Valider la modification"
-      >
-        <i class="fas fa-check"></i>
-        <span class="text-xs hidden sm:inline">Valider</span>
-      </button>
-
-      <!-- Bouton Annuler -->
-      <button 
-        v-if="editableRowId === utilisateur.id"
-        @click="annulerModification" 
-        class="text-gray-700 py-1 rounded hover:bg-gray-200 flex flex-col items-center justify-center"
-        title="Annuler"
-      >
-        <i class="fas fa-times"></i>
-        <span class="text-xs hidden sm:inline">Annuler</span>
-      </button>
-      <button 
-         v-if="editableRowId !== utilisateur.id"
-          @click="supprimerUtilisateur(utilisateur.id)"  
-          class=" text-red-700 px-3 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center">
-          <i class="fas fa-trash-alt"></i> <!-- Icône de suppression -->
-          <span class="text-red-700 text-xs hidden sm:inline">Supprimer</span>
-      </button>
-      <!-- Bouton Réinitialiser le mot de passe -->
-      <button 
-        v-if="editableRowId !== utilisateur.id"
-        @click="resetPassword(utilisateur.id)" 
-        class="text-red-700 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center"
-        title="Réinitialiser le mot de passe"
-      >
-        <i class="fas fa-key"></i>
-        <span class="text-xs hidden sm:inline">Réinitialiser</span>
-      </button>
-    </td>
-  </tr>
-</tbody>
-
-          </table>
-        </div>
-      </div>
-
-      <!-- Pagination -->
-      <div class="pagination mt-4">
-        <div class="flex justify-center">
-          <button 
-            @click="previousPage" 
-            :disabled="currentPage === 1" 
-            class="bg-gray-300 px-2 py-1 rounded disabled:opacity-50"
-          >
-            <i class="fas fa-chevron-left"></i>
+        <div class="flex flex-col sm:flex-row items-center gap-3">
+          <button @click="telechargerCanevas" class="px-4 py-2.5 bg-indigo-50 text-indigo-600 rounded-lg font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-indigo-100 transition-all">
+            <i class="fas fa-download"></i> Canevas
           </button>
-          <span class="mx-2">Page {{ currentPage }} sur {{ totalPages }}</span>
+          <div class="relative overflow-hidden inline-block group">
+            <button type="button" class="bg-gray-50 text-gray-600 px-4 py-2.5 rounded-lg font-bold text-xs uppercase tracking-widest flex items-center gap-2 border border-blue-50 hover:bg-blue-50/50 transition-all">
+              <i class="fas fa-file-import text-blue-500"></i>
+              {{ file && file.name ? (file.name.length > 15 ? file.name.substring(0,15) + '...' : file.name) : 'Choisir fichier' }}
+            </button>
+            <input type="file" accept=".csv, .xls, .xlsx" @click="$event.target.value = null" @change="handleFileUpload" class="absolute left-0 top-0 opacity-0 cursor-pointer w-full h-full z-10">
+          </div>
           <button 
-            @click="nextPage" 
-            :disabled="currentPage === totalPages" 
-            class="bg-gray-300 px-2 py-1 rounded disabled:opacity-50"
-          >
-            <i class="fas fa-chevron-right"></i>
+            @click="uploadFile" 
+            :disabled="loading || !file"
+            class="px-5 py-2.5 bg-slate-800 text-white rounded-lg font-bold text-[10px] uppercase tracking-widest disabled:opacity-30">
+            {{ loading ? 'En cours...' : 'Importer' }}
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Formulaire de création -->
-    <FormulaireCreationUtilisateur 
-      v-if="showFormulaire" 
-      @close="showFormulaire = false" 
-      @submitForm="fetchUtilisateurs"
-    />
+    <!-- Tableau -->
+    <div class="w-full max-w-[99%] mx-auto px-4 md:px-8 overflow-x-auto">
+      <div class="overflow-hidden border border-gray-200 rounded-lg shadow-sm bg-white">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50 uppercase text-[10px] tracking-widest font-black text-gray-400">
+            <tr>
+              <th class="px-4 py-4 text-left">N°</th>
+              <th class="px-6 py-4 text-left">Utilisateur (Email)</th>
+              <th class="px-6 py-4 text-left">Structure</th>
+              <th class="px-6 py-4 text-left">Rôle</th>
+              <th class="px-4 py-4 text-center">État</th>
+              <th class="px-6 py-4 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
+            <tr 
+              v-for="(user, index) in paginatedUtilisateurs" 
+              :key="user.id" 
+              class="hover:bg-gray-50 transition-colors"
+            >
+              <td class="px-4 py-4 text-[10px] font-bold text-gray-400">
+                {{ (currentPage - 1) * itemsPerPage + index + 1 }}
+              </td>
+              <td class="px-6 py-4">
+                <input 
+                  v-model="user.email" 
+                  class="bg-transparent text-sm font-bold text-gray-800 w-full outline-none focus:ring-1 focus:ring-amber-400 rounded px-1"
+                  :disabled="editableRowId !== user.id"
+                />
+              </td>
+              <td class="px-6 py-4">
+                <span class="px-2 py-1 bg-gray-50 rounded text-[9px] font-bold text-emerald-700 border border-emerald-100 uppercase">{{ user.structure?.sigle || 'N/A' }}</span>
+              </td>
+              <td class="px-6 py-4">
+                <select 
+                  v-model="user.role" 
+                  class="bg-transparent text-[10px] font-black uppercase text-indigo-600 tracking-tighter w-full outline-none disabled:opacity-75"
+                  :disabled="editableRowId !== user.id"
+                >
+                  <option value="Administrateur">Administrateur DEPS</option>
+                  <option value="Chef-de-service">Chef de service</option>
+                  <option value="Responsable-de-structure">Responsable</option>
+                  <option value="Point-Focale">Point Focal</option>
+                  <option value="Ordonnateur">Ordonnateur</option>
+                  <option value="Administrateur_DSI">Admin DSI</option>
+                </select>
+              </td>
+              <td class="px-4 py-4 text-center">
+                <select 
+                  v-model="user.etat" 
+                  class="bg-transparent text-[9px] font-black uppercase tracking-tighter outline-none"
+                  :class="user.etat === 'Actif' ? 'text-emerald-600' : 'text-gray-400'"
+                  :disabled="editableRowId !== user.id"
+                >
+                  <option value="Actif">Actif</option>
+                  <option value="Inactif">Inactif</option>
+                </select>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center justify-center gap-2">
+                  <template v-if="editableRowId !== user.id">
+                    <button @click="editableRowId = user.id" class="p-1.5 text-amber-600 hover:bg-amber-50 rounded transition-all" title="Modifier">
+                      <i class="fas fa-edit text-xs"></i>
+                    </button>
+                    <button @click="resetPassword(user.id)" class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-all" title="Reset Pass">
+                      <i class="fas fa-key text-xs"></i>
+                    </button>
+                    <button @click="supprimerUtilisateur(user.id)" class="p-1.5 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded transition-all" title="Supprimer">
+                      <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button @click="confirmerModification(user)" class="px-3 py-1 bg-emerald-600 text-white rounded text-[10px] font-bold uppercase tracking-widest shadow-sm">
+                      Valider
+                    </button>
+                    <button @click="editableRowId = null" class="px-3 py-1 bg-gray-100 text-gray-500 rounded text-[10px] font-bold uppercase tracking-widest">
+                      Annuler
+                    </button>
+                  </template>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-    <!-- Alert -->
-    <div v-if="alertMessage" class="alert mt-4" :class="isSuccess ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'">
-      {{ alertMessage }}
+    <!-- Pagination -->
+    <div v-if="filteredUtilisateurs.length > 0" class="flex justify-center items-center gap-4 py-8">
+      <button @click="previousPage" :disabled="currentPage === 1" class="px-4 py-2 bg-white border border-gray-200 text-gray-500 hover:text-emerald-600 rounded-lg transition-all disabled:opacity-30">
+        <i class="fas fa-chevron-left text-xs"></i>
+      </button>
+      <div class="flex items-center gap-3">
+        <div class="px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold text-sm shadow-sm">{{ currentPage }}</div>
+        <span class="text-xs font-bold text-gray-400">sur {{ totalPages }}</span>
+      </div>
+      <button @click="nextPage" :disabled="currentPage === totalPages" class="px-4 py-2 bg-white border border-gray-200 text-gray-500 hover:text-emerald-600 rounded-lg transition-all disabled:opacity-30">
+        <i class="fas fa-chevron-right text-xs"></i>
+      </button>
+    </div>
+
+    <FormulaireCreationUtilisateur v-if="showFormulaire" @close="showFormulaire = false" @submitForm="fetchUtilisateurs" />
+
+    <div v-if="alertMessage" class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2 transition-all" :class="isSuccess ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'">
+      <i class="fas" :class="isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle'"></i>
+      <span class="text-xs font-bold uppercase tracking-wider">{{ alertMessage }}</span>
     </div>
   </div>
 </template>
@@ -214,7 +180,7 @@ export default {
     return {
       utilisateurs: [],
       currentPage: 1,
-      itemsPerPage: 8,
+      itemsPerPage: 7,
       showFormulaire: false,
       searchQuery: '',
       alertMessage: '',
@@ -223,13 +189,12 @@ export default {
       message: '',
       success: false,
       loading: false,
+      actionLoading: {},
       editableRowId: null,
-      csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
     };
   },
   mounted() {
     this.fetchUtilisateurs();
-    // this.fetchStructures();
   },
   computed: {
     filteredUtilisateurs() {
@@ -248,43 +213,46 @@ export default {
   },
   methods: {
     handleFileUpload(event) {
-            this.file = event.target.files[0];
-        },
-        async uploadFile() {
-            if (!this.file) {
-                this.message = "Veuillez sélectionner un fichier.";
-                this.success = false;
-                return;
-            }
-
-            this.loading = true;
-            this.message = '';
-
-            let formData = new FormData();
-            formData.append('file', this.file);
-
-            try {
-                const response = await axios.post('/api/import-users', formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
-                this.message = response.data.message;
-                this.success = true;
-                this.showAlert(this.message, true);
-            } catch (error) {
-                this.message = error.response?.data?.message || "Une erreur est survenue.";
-                this.success = false;
-            } finally {
-                this.loading = false;
-            }
-        },
-   
+      this.file = event.target.files[0];
+    },
+    async uploadFile() {
+      if (!this.file) {
+        this.showAlert("Veuillez sélectionner un fichier.", false);
+        return;
+      }
+      this.loading = true;
+      let formData = new FormData();
+      formData.append('file', this.file);
+      try {
+        const response = await axios.post('/api/import-users', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        this.showAlert(response.data.message, true);
+        this.fetchUtilisateurs();
+      } catch (error) {
+        this.showAlert(error.response?.data?.message || "Erreur d'importation.", false);
+      } finally {
+        this.loading = false;
+        this.file = null;
+      }
+    },
+    async telechargerCanevas() {
+      try {
+        const response = await axios.get('/api/download-template-users', { responseType: 'blob' });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'modele_import_utilisateurs.csv');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        this.showAlert("Erreur lors du téléchargement du canevas.", false);
+      }
+    },
     async fetchUtilisateurs() {
       try {
-        const response = await axios.get('/api/utilisateurs', {
-          headers: {
-            'X-CSRF-TOKEN': this.csrfToken
-          }
-        });
+        const response = await axios.get('/api/utilisateurs');
         this.utilisateurs = response.data;
       } catch (error) {
         console.error('Erreur lors de la récupération des utilisateurs:', error);
@@ -294,121 +262,61 @@ export default {
       this.showFormulaire = true;
     },
     nextPage() {
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++;
-      }
+      if (this.currentPage < this.totalPages) this.currentPage++;
     },
     previousPage() {
-      if (this.currentPage > 1) {
-        this.currentPage--;
-      }
+      if (this.currentPage > 1) this.currentPage--;
     },
     async confirmerModification(utilisateur) {
-  console.log("Données envoyées :", utilisateur); // Vérifiez les valeurs
-
-  if (confirm('Êtes-vous sûr de vouloir modifier cet utilisateur ?')) {
-    try {
-      const response = await axios.put(
-        `/api/utilisateurs/${utilisateur.id}`,
-        {
+      if (!confirm('Êtes-vous sûr de vouloir enregistrer ces modifications ?')) return;
+      try {
+        const response = await axios.put(`/api/utilisateurs/${utilisateur.id}`, {
           email: utilisateur.email,
           role: utilisateur.role,
           etat: utilisateur.etat,
-        },
-        {
-          headers: {
-            'X-CSRF-TOKEN': this.csrfToken
-          }
+        });
+        if (response.status === 200) {
+          this.showAlert('Modifications enregistrées!', true);
+          this.fetchUtilisateurs();
         }
-      );
-
-      if (response.status === 200) {
-        this.showAlert('Modifications enregistrées avec succès!', true);
-        this.fetchUtilisateurs();
+        this.editableRowId = null;
+      } catch (error) {
+        this.showAlert('Erreur lors de la modification.', false);
       }
-      this.editableRowId = null;
-    } catch (error) {
-      console.error('Erreur lors de la modification de l\'utilisateur:', error.response ? error.response.data : error);
-      this.showAlert('Erreur lors de la modification de l\'utilisateur. Veuillez réessayer.', false);
-    }
-  }
-},
+    },
     annulerModification() {
-    this.editableRowId = null; // Annule l'édition et rétablit les valeurs initiales
-  },
-  async supprimerUtilisateur(id) {
-      if (confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+      this.editableRowId = null;
+    },
+    async supprimerUtilisateur(id) {
+      if (confirm("Supprimer cet utilisateur ?")) {
         try {
           await axios.delete(`/api/utilisateurs/supprimer/${id}`);
-          this.utilisateurs = this.utilisateurs.filter((user) => user.id !== id);
+          this.utilisateurs = this.utilisateurs.filter(u => u.id !== id);
+          this.showAlert("Utilisateur supprimé", true);
         } catch (error) {
-          console.error("Erreur lors de la suppression :", error);
+          console.error(error);
         }
       }
     },
     async resetPassword(userId) {
-      if (!confirm('Êtes-vous sûr de vouloir restaurer le mot de passe ?')) {
-        console.log('Soumission annulée par l\'utilisateur.');
-        return; // Sort de la fonction si l'utilisateur annule.
-      }
-        try {
-          const response = await axios.put(
-            `/api/utilisateurs/${userId}/reset-password`,
-            {},
-            {
-              headers: {
-                'X-CSRF-TOKEN': this.csrfToken
-              }
-            }
-          );
-          
-          if (response.status === 200) {
-            this.showAlert('Mot de passe réinitialisé avec succès!', true);
-          }
-        } catch (error) {
-          console.error('Erreur lors de la réinitialisation du mot de passe:', error);
-          this.showAlert('Erreur lors de la réinitialisation du mot de passe. Veuillez réessayer.', false);
-        
+      if (!confirm('Réinitialiser le mot de passe ?')) return;
+      try {
+        const response = await axios.put(`/api/utilisateurs/${userId}/reset-password`, {});
+        if (response.status === 200) this.showAlert('Réinitialisé avec succès!', true);
+      } catch (error) {
+        this.showAlert('Erreur de réinitialisation.', false);
       }
     },
     showAlert(message, success) {
       this.alertMessage = message;
       this.isSuccess = success;
-      setTimeout(() => {
-        this.alertMessage = '';
-      }, 3000);
+      setTimeout(() => { this.alertMessage = ''; }, 3000);
     },
   },
- 
 };
 </script>
 
 <style scoped>
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.alert {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 1rem;
-  border-radius: 0.5rem;
-  z-index: 1000;
-  width: auto;
-}
-.alert-success {
-  background-color: #4caf50;
-  color: white;
-}
-.alert-error {
-  background-color: #f44336;
-  color: white;
-}
-button {
-    transition: background-color 0.3s ease;
-}
+.pagination { display: flex; justify-content: center; align-items: center; }
+button { transition: all 0.2s ease; }
 </style>

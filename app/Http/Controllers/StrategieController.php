@@ -39,20 +39,27 @@ class StrategieController extends Controller
 
         return response()->json($effets);
     }
-    public function getEffetsByObjectifActivite($objectifId)
+    public function getEffetsByObjectifActivite(Request $request, $objectifId)
     {
-        // Obtenir la session en cours (par exemple, où l'état est 'en cours')
-        $sessionEnCours = SessionActivite::where('etat', 'Ouvert')->first();
+        $sessionId = $request->query('session_id');
+        
+        if ($sessionId) {
+            $session = SessionActivite::find($sessionId);
+        } else {
+            $session = SessionActivite::where('etat', 'Ouvert')->first();
+        }
 
-        if (!$sessionEnCours) {
-            return response()->json(['message' => 'Aucune session en cours trouvée.'], 404);
+        if (!$session) {
+            return response()->json([], 200);
         }
 
         $effets = EffetAttendu::where('objectif_strategique_id', $objectifId)
-            ->whereHas('activite', function ($query) use ($sessionEnCours) {
-                $query->where('sessions_id', $sessionEnCours->id)
-                      ->orWhere('reconduir', $sessionEnCours->annee)
-                      ->where('hort_progamme', 0);
+            ->whereHas('activite', function ($query) use ($session) {
+                $query->where(function($q) use ($session) {
+                    $q->where('sessions_id', $session->id)
+                      ->orWhere('reconduir', $session->annee);
+                })
+                ->where('hort_progamme', 0);
             })->get();
 
         return response()->json($effets);

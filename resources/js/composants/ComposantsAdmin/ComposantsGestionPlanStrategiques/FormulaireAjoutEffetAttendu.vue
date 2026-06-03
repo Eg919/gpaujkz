@@ -87,8 +87,8 @@
     </div>
   </div>
 </template>
-
 <script>
+import axios from 'axios';
 export default {
   props: {
     idObjectifSelectionne: {
@@ -115,37 +115,22 @@ export default {
     async soumettreFormulaireEffets() {
       this.erreurs = {};
       this.enCoursDeSoumission = true;
-
       if (!this.idObjectifSelectionne) {
         this.erreurs.general = 'L\'identifiant de l\'objectif stratégique doit être spécifié.';
         this.enCoursDeSoumission = false;
         return;
       }
-
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
       try {
-        const response = await fetch('/api/effets-attendus', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-          },
-          body: JSON.stringify({
-            objectif_strategique_id: this.idObjectifSelectionne,
-            effets: this.effets,
-          }),
+        const response = await axios.post('/api/effets-attendus', {
+          objectif_strategique_id: this.idObjectifSelectionne,
+          effets: this.effets,
         });
-
-        if (!response.ok) throw new Error('Erreur lors de l’ajout de l’effet attendu.');
-        
-        const result = await response.json();
-        this.showAlert(result.message,true);
+        this.showAlert(response.data.message, true);
         this.$emit('soumettreFormulaireEffets');
         this.fermerFormulaire();
       } catch (error) {
         console.error(error);
-        tthis.showAlert('Une erreur est survenue. Veuillez réessayer.',false);
+        this.showAlert('Une erreur est survenue. Veuillez réessayer.', false);
       } finally {
         this.enCoursDeSoumission = false;
       }

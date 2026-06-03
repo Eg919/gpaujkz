@@ -72,9 +72,10 @@
         <!-- Bouton de soumission -->
         <button
           type="submit"
-          class="w-full bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600 sm:hover:bg-green-500 mt-3"
+          :disabled="loading"
+          class="w-full bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600 sm:hover:bg-green-500 mt-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Changer le mot de passe
+          {{ loading ? 'Changement en cours...' : 'Changer le mot de passe' }}
         </button>
       </form>
 
@@ -101,10 +102,13 @@ export default {
         new_password_confirmation: "",
       },
       message: "",
+      loading: false,
     };
   },
   methods: {
     async submitForm() {
+      if (this.loading) return;
+      this.loading = true;
       try {
         const response = await axios.post("/api/change-password", this.form);
         this.message = response.data.message;
@@ -113,6 +117,8 @@ export default {
         }, 2000);
       } catch (error) {
         this.message = error.response.data.message || "Une erreur est survenue.";
+      } finally {
+        this.loading = false;
       }
     },
   },

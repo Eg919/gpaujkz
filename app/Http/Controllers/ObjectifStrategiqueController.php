@@ -60,7 +60,7 @@ class ObjectifStrategiqueController extends Controller
         ->whereHas('axe.plan', function ($query) {
             $query->where('etat', 'Ouvert');  // Vérifier que le plan est en cours
         })
-        ->select('id', 'libelle')  // Sélectionner les champs nécessaires
+        ->select('id', 'libelle', 'axe_strategique_id')  // Sélectionner les champs nécessaires
         ->get();
 
     return response()->json([
@@ -70,21 +70,33 @@ class ObjectifStrategiqueController extends Controller
 
 }
 
-public function objectifsStrategiquesEnCoursAvecActivites()
+public function objectifsStrategiquesEnCoursAvecActivites(Request $request)
 {
-    $sessionEnCours = SessionActivite::where('etat', 'Ouvert')->first();
+    $sessionId = $request->query('session_id');
+    
+    if ($sessionId) {
+        $session = SessionActivite::find($sessionId);
+    } else {
+        $session = SessionActivite::where('etat', 'Ouvert')->first();
+    }
+
+    if (!$session) {
+        return response()->json([
+            'status' => 'success',
+            'data' => []
+        ]);
+    }
 
     $objectifs = ObjectifStrategique::with(['axe.plan'])  
-        ->whereHas('axe.plan', function ($query) {
-            $query->where('etat', 'Ouvert');  
-        })
-        ->whereHas('activite', function ($query) use ($sessionEnCours) {
-            $query->where('sessions_id', $sessionEnCours->id)
-            ->orWhere('reconduir', $sessionEnCours->annee)
+        ->whereHas('activite', function ($query) use ($session) {
+            $query->where(function ($q) use ($session) {
+                $q->where('sessions_id', $session->id)
+                  ->orWhere('reconduir', $session->annee);
+            })
             ->where('etat_slection', 'Validé')
             ->where('hort_progamme', 0); 
         })
-        ->select('id', 'libelle')  
+        ->select('id', 'libelle', 'axe_strategique_id')  
         ->get();
 
     return response()->json([

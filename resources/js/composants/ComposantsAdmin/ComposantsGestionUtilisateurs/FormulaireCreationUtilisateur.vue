@@ -1,104 +1,117 @@
 <template>
-  <div class="formulaire-creation-utilisateur fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 mt-3">
-    <!-- Formulaire principal -->
-    <form 
-      @submit.prevent="submitForm" 
-      class="bg-white p-4 sm:p-6 rounded-lg shadow-md w-full sm:w-1/3 max-h-[calc(101vh-4rem)] overflow-y-auto relative"
-    >
-      <!-- Bouton de fermeture -->
-      <button 
-        @click.prevent="fermerFormulaire" 
-        type="button" 
-        class="absolute top-4 right-4 text-red-500 hover:text-red-700 focus:outline-none"
+  <div class="fixed inset-0 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm z-[2000]">
+    <!-- Main Modal Card -->
+    <div class="relative w-full max-w-lg mx-4">
+      
+      <form 
+        @submit.prevent="submitForm" 
+        class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200"
       >
-        <i class="fas fa-times"></i>
-      </button>
+        <!-- Header -->
+        <div class="bg-gray-50 border-b border-gray-200 py-6 px-8 flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-black text-amber-500 uppercase tracking-tighter">Nouvel Utilisateur</h2>
+            <p class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">Accès et Habilitations</p>
+          </div>
+          <button @click.prevent="fermerFormulaire" class="text-gray-400 hover:text-rose-500 transition-colors">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
 
-      <!-- Titre -->
-      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center">Créer un Utilisateur</h2>
+        <div class="p-8 max-h-[70vh] overflow-y-auto">
+          <!-- Status Messages -->
+          <div v-if="successMessage" class="mb-6 bg-emerald-50 border border-emerald-100 text-emerald-700 p-3 rounded-lg text-xs font-bold flex items-center gap-2">
+            <i class="fas fa-check-circle"></i> {{ successMessage }}
+          </div>
+          <div v-if="errors.general" class="mb-6 bg-rose-50 border border-rose-100 text-rose-700 p-3 rounded-lg text-xs font-bold flex items-center gap-2">
+            <i class="fas fa-exclamation-triangle"></i> {{ errors.general }}
+          </div>
 
-      <!-- Message de succès -->
-      <div v-if="successMessage" class="mt-4 text-green-500 p-2 rounded bg-green-100 mb-4">
-        {{ successMessage }}
-      </div>
-
-      <!-- Champ Rôle -->
-      <div class="mb-4">
-        <label for="role" class="block text-sm sm:text-base font-medium mb-1">Rôle :</label>
-        <select 
-          v-model="form.role" 
-          required 
-          placeholder ="veillez selectioner le rôle"
-          class="mt-1 block w-full border border-gray-300 rounded-md p-2 sm:p-3 text-sm sm:text-base"
-        >
-        <option value="">Veuillez sélectionner le rôle</option>
-          <option  value="Administrateur">Administrateur_DEPS</option>
-          <option  value="Chef-de-service">Chef-de-service</option>
-          <option  value="Responsable-de-structure">Responsable-de-structure</option>
-          <option  value="Point-Focale">Point Focale</option>
-          <option  value="Ordonnateur">Ordonnateur</option>
-          <option  value="Administrateur_DSI">Administrateur_DSI</option>
-        </select>
-        <span v-if="errors.role" class="text-red-500 text-xs sm:text-sm">{{ errors.role }}</span>
-      </div>
-
-      <!-- Champ Structure -->
-      <div class="mb-4">
-        <label for="structure" class="block text-sm sm:text-base font-medium mb-1">Structure :</label>
-        <select 
-          v-model="form.structure_id" 
-          placeholder ="veillez selectioner la structure"
-          required 
-          class="mt-1 block w-full border border-gray-300 rounded-md p-2 sm:p-3 text-sm sm:text-base overflow-y-auto"
-        >
-        <option value="">Veuillez sélectionner la structure</option>
-          <option 
-            v-for="structure in structures" 
-            :key="structure.id" 
-            :value="structure.id"
-          >
-            {{ structure.sigle }}
-          </option>
-        </select>
-        <span v-if="errors.structure_id" class="text-red-500 text-xs sm:text-sm">{{ errors.structure_id }}</span>
-      </div>
-
-      <!-- Champ Email -->
-      <div class="mb-4">
-        <label for="email" class="block text-sm sm:text-base font-medium mb-1">Email :</label>
-        <input 
-          type="email" 
-          v-model="form.email" 
-          placeholder ="veillez entrer le mail"
-          required 
-          class="mt-1 block w-full border border-gray-300 rounded-md p-2 sm:p-3 text-sm sm:text-base"
-        />
-        <span v-if="errors.email" class="text-red-500 text-xs sm:text-sm">{{ errors.email }}</span>
-      </div>
-      <div>
-            <!-- Champ Etat -->
-            <div class="mb-4">
-              <label for="etat" class="block text-sm sm:text-base font-medium mb-1">Etat :</label>
-              <select 
-                v-model="form.etat" 
-                required 
-                placeholder ="veillez selectioner l'état"
-                class="mt-1 block w-full border border-gray-300 rounded-md p-2 sm:p-3 text-sm sm:text-base"
-              >
-                <option value="Actif">Actif</option>
-                <option value="Inactif">Inactif</option>
-              </select>
-              <span v-if="errors.etat" class="text-red-500 text-xs sm:text-sm">{{ errors.etat }}</span>
+          <div class="space-y-5">
+            <!-- Email Field -->
+            <div>
+              <label class="block text-[11px] font-black uppercase text-gray-500 tracking-wider mb-1.5">Adresse Email</label>
+              <input
+                v-model="form.email"
+                type="email"
+                required
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all outline-none"
+                placeholder="nom.prenom@ujkz.bf"
+              />
+              <p v-if="errors.email" class="mt-1.5 text-[10px] font-bold text-rose-600">{{ errors.email }}</p>
             </div>
-      </div>
-      <!-- Bouton de soumission -->
-      <button 
-        type="submit" 
-        class="w-full bg-green-500 text-white p-2 sm:p-3 rounded-lg hover:bg-green-700 mt-3"
-      >
-        Créer un Utilisateur
-      </button>
-    </form>
+
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Role Field -->
+              <div>
+                <label class="block text-[11px] font-black uppercase text-gray-500 tracking-wider mb-1.5">Rôle</label>
+                <select
+                  v-model="form.role"
+                  required
+                  class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-amber-400 transition-all outline-none"
+                >
+                  <option value="">Sélectionner...</option>
+                  <option value="Administrateur">Administrateur DEPS</option>
+                  <option value="Chef-de-service">Chef de service</option>
+                  <option value="Responsable-de-structure">Responsable</option>
+                  <option value="Point-Focale">Point Focal</option>
+                  <option value="Ordonnateur">Ordonnateur</option>
+                  <option value="Administrateur_DSI">Admin DSI</option>
+                  <option value="Planificateur">Planificateur</option>
+                </select>
+              </div>
+
+              <!-- State Field -->
+              <div>
+                <label class="block text-[11px] font-black uppercase text-gray-500 tracking-wider mb-1.5">État Initial</label>
+                <select
+                  v-model="form.etat"
+                  required
+                  class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-amber-400 transition-all outline-none"
+                >
+                  <option value="Actif">Actif</option>
+                  <option value="Inactif">Inactif</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Structure Field -->
+            <div>
+              <label class="block text-[11px] font-black uppercase text-gray-500 tracking-wider mb-1.5">Structure de rattachement</label>
+              <select
+                v-model="form.structure_id"
+                required
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-amber-400 transition-all outline-none"
+              >
+                <option value="">Veuillez sélectionner...</option>
+                <option v-for="structure in structures" :key="structure.id" :value="structure.id">
+                  {{ structure.sigle }} - {{ structure.libelle_structure }}
+                </option>
+              </select>
+              <p v-if="errors.structure_id" class="mt-1.5 text-[10px] font-bold text-rose-600">{{ errors.structure_id }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="bg-gray-50 border-t border-gray-200 py-6 px-8 flex items-center justify-end gap-3">
+          <button 
+            type="button"
+            @click.prevent="fermerFormulaire"
+            class="px-6 py-2.5 text-gray-500 font-bold text-xs uppercase tracking-widest hover:text-gray-800 transition-colors"
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            :disabled="loading"
+            class="px-8 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all active:scale-95 disabled:opacity-50"
+          >
+            {{ loading ? 'En cours...' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -113,86 +126,48 @@ export default {
         role: '',
         etat: 'Actif',
         structure_id: '',
-      
       },
       errors: {},
-      successMessage: '', // Ajoutez cette ligne
-     
+      successMessage: '',
+      loading: false,
     };
   },
   mounted() {
     this.fetchStructures();
   },
   methods: {
- 
     async fetchStructures() {
       try {
-        const response = await fetch('/api/structures');
-        if (!response.ok) throw new Error('Erreur lors de la récupération des structures');
-        this.structures = await response.json();
+        const response = await axios.get('/api/structures');
+        this.structures = response.data;
       } catch (error) {
         console.error(error);
       }
     },
-   async submitForm() {
-  this.errors = {};
-  this.successMessage = ''; // Réinitialiser le message de succès
+    async submitForm() {
+      if (this.loading) return;
+      this.errors = {};
+      this.successMessage = '';
 
-  // Vérification du format de l'email avant envoi
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@ujkz\.bf$/;
-  if (!emailRegex.test(this.form.email)) {
-    this.errors.email = "L'adresse email doit se terminer par @ujkz.bf.";
-    return; // Stoppe l'envoi du formulaire
-  }
-
-  const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-  try {
-    const response = await fetch('/api/utilisateurs', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': csrfToken,
-      },
-      body: JSON.stringify(this.form),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      this.errors = errorData.errors || {};
-      if (Object.keys(this.errors).length === 0) {
-        this.errors.general = 'Une erreur est survenue lors de la création de l’utilisateur.';
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@ujkz\.bf$/;
+      if (!emailRegex.test(this.form.email)) {
+        this.errors.email = "L'adresse email doit se terminer par @ujkz.bf";
+        return;
       }
-      throw new Error('Erreur lors de la création de l’utilisateur');
-    }
 
-    this.successMessage = 'Utilisateur créé avec succès!';
-    this.$emit('submitForm'); // Émettre un événement pour informer le parent
-    setTimeout(() => {
-      this.successMessage = ''; // Masquer le message de succès
-      this.fermerFormulaire(); // Fermer le formulaire
-    }, 500);
-  } catch (error) {
-    console.error(error);
-  }
-}
-,
-    fermerFormulaire() {
-      this.$emit('close');
-      console.log('Formulaire fermé');
+      this.loading = true;
+      try {
+        const response = await axios.post('/api/utilisateurs', this.form);
+        this.successMessage = 'Utilisateur créé !';
+        this.$emit('submitForm');
+        setTimeout(() => { this.fermerFormulaire(); }, 1000);
+      } catch (error) {
+        this.errors = error.response?.data?.errors || { general: 'Une erreur est survenue.' };
+      } finally {
+        this.loading = false;
+      }
     },
+    fermerFormulaire() { this.$emit('close'); }
   },
 };
 </script>
-
-<style scoped>
-.formulaire-creation-utilisateur {
-  padding: 20px;
-}
-.text-red-500 {
-  color: red;
-}
-.text-green-500 {
-  color: green;
-}
-</style>

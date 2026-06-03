@@ -1,31 +1,31 @@
 <template>
   <div class="flex flex-col h-screen">
     <!-- Header avec retour et sélection -->
-    <div class="flex justify-between items-center w-full px-4 md:px-6 py-2 bg-gray-50 shadow-md mt-7">
+    <!-- Header avec retour, Titre dynamique et sélection -->
+    <div class="w-full bg-gray-50 shadow-md border-b border-gray-200 py-3 px-4 md:px-8 flex items-center mb-4 print:hidden">
       <!-- Retour -->
-      <div class="flex items-center space-x-1">
-        <router-link to="/admin" class="text-blue-500 flex items-center">
-          <i class="fas fa-arrow-left text-lg"></i>
-          <span class="ml-1 text-xs sm:text-sm md:text-base hidden sm:inline">Retour</span>
+      <div class="w-1/4 flex items-center">
+        <router-link to="/admin" class="text-blue-500 hover:text-blue-700 transition-colors flex items-center gap-2">
+          <i class="fas fa-arrow-left text-xl"></i>
+          <span class="text-xs font-bold uppercase hidden md:inline">Retour</span>
         </router-link>
       </div>
 
-      <!-- Titre centralisé -->
-      <div class="flex-grow text-center">
-        <h1 class="text-red-500 font-semibold truncate">
-          <span class="block text-xs sm:text-sm md:text-xl lg:text-4xl">
-            Programmes d'Activités
-          </span>
+      <!-- Titre Centralisé Dynamique -->
+      <div class="w-2/4 text-center">
+        <h1 class="text-xl md:text-2xl font-black text-amber-500 uppercase tracking-tighter truncate">
+          {{ currentTitle }}
         </h1>
       </div>
 
       <!-- Sélecteur -->
-      <div class="mx-2 sm:mx-4">
+      <div class="w-1/4 flex justify-end items-center space-x-2">
+        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest hidden lg:inline">Vue :</span>
         <select
           id="selection"
           v-model="selectedOption"
           @change="handleSelection"
-          class="px-2 sm:px-3 py-1 sm:py-2 bg-white border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300 text-xs sm:text-sm md:text-base"
+          class="px-2 sm:px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs sm:text-sm font-bold text-gray-600 outline-none transition-all"
         >
           <option disabled value="">-- Sélectionner --</option>
           <option v-for="option in options" :key="option.value" :value="option.value">
@@ -36,9 +36,9 @@
     </div>
 
     <!-- Section avec défilement vertical -->
-    <div class="flex-1 overflow-y-auto p-2 md:p-4 rounded-lg shadow-inner">
+    <div class="flex-1 overflow-y-auto p-2 md:p-4 bg-gray-50/30">
       <div v-if="currentComponent" class="w-full">
-        <component :is="currentComponent" />
+        <component :is="currentComponent" :standalone="false" />
       </div>
       <div v-else class="text-center text-gray-500 py-8">
         <p>Sélectionnez une option pour afficher le contenu.</p>
@@ -48,7 +48,7 @@
 </template>
 <script>
 import GestionProgrammesActivites from "./GestionProgrammesActivites.vue";
-import GestionMaticeDactivite from "../ComposantsGestionRapportsTrimestriels/GestionMaticeDactivite.vue";
+import GestionMatriceDactivite from "../ComposantsGestionRapportsTrimestriels/GestionMatriceDactivite.vue";
 
 export default {
   data() {
@@ -64,7 +64,13 @@ export default {
   },
   components: {
     "component-a": GestionProgrammesActivites,
-    "component-b": GestionMaticeDactivite,
+    "component-b": GestionMatriceDactivite,
+  },
+  computed: {
+    currentTitle() {
+      const option = this.options.find(o => o.value === this.selectedOption);
+      return option ? option.label : "Gestion des Activités";
+    }
   },
   methods: {
     handleSelection() {

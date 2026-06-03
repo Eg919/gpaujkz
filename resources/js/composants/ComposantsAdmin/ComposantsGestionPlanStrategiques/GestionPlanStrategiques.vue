@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col md:flex-row h-screen overflow-hidden">
+  <div class="flex flex-col md:flex-row h-screen overflow-hidden max-w-[99%] mx-auto">
     <!-- Alertes -->
     <div v-if="alertMessage" :class="['alert', isSuccess ? 'alert-success' : 'alert-error']" class="w-full md:w-1/5 mx-auto md:mx-0 mb-4 md:mb-0">
       {{ alertMessage }}
@@ -32,7 +32,6 @@
                 @click="supprimerPlan(plan.id)"
                 class=" text-red-700 px-3 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center">
                 <i class="fas fa-trash-alt"></i> <!-- Icône de suppression -->
-              
             </button>
           </div>
         </div>
@@ -74,188 +73,78 @@
         </div>
       </div>
 
-      <!-- Tableau des Effets Attendus -->
-      <table v-if="effets.length" class="w-full text-sm md:text-base text-gray-500 border-collapse border border-gray-200 shadow-md sm:rounded-lg mb-6">
-        <thead class="text-xs md:text-sm text-gray-700 uppercase bg-gray-50">
-          <tr>
-            <th class="border border-gray-300 px-4 py-2">#</th>
-            <th class="border border-gray-300 px-4 py-2">Effet Attendu</th>
-            <th class="border border-gray-300 px-4 py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(effet, index) in effets" :key="effet.id">
-            <td class="border border-gray-300 px-4 py-2">{{ index + 1 }}</td>
-            <td class="border border-gray-300 px-4 py-2">
-              <input
-                v-model="effet.libelle"
-                type="text"
-                class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white text-sm md:text-base"
-                :disabled="editableRowId !== effet.id"
-              />
-            </td>
-            <td class="px-2 flex items-center justify-center space-x-6 border border-gray-300">
-              <button 
-                v-if="editableRowId !== effet.id"
-                @click="editableRowId = effet.id"
-                class="text-yellow-500 py-1 rounded hover:bg-yellow-100 flex flex-col items-center justify-center"
-                title="Modifier"
-              >
-                <i class="fas fa-edit"></i>
-                <span class="text-xs hidden sm:inline">Modifier</span>
-              </button>
-              <button
-               v-if="editableRowId === effet.id"
-                @click.stop="sauvegarderEffet(effet)"
-                class="text-green-700 px-2 py-2 rounded hover:bg-green-200 flex flex-col items-center justify-center"
-                title="Valider la modification"
-              >
-                <i class="fas fa-check"></i>
-                <span class="hidden sm:inline text-xs md:text-sm">Valider</span>
-              </button>
-              <!-- Bouton Annuler -->
-              <button 
-                v-if="editableRowId === effet.id"
-                @click="annulerModification" 
-                class="text-gray-700 py-1 rounded hover:bg-gray-200 flex flex-col items-center justify-center"
-                title="Annuler"
-              >
-                <i class="fas fa-times"></i>
-                <span class="text-xs hidden sm:inline">Annuler</span>
-              </button>
-              <button 
-                v-if="editableRowId !== effet.id"
-                  @click="supprimerEffet(effet.id)" 
-                  class=" text-red-700 px-3 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center">
-                  <i class="fas fa-trash-alt"></i> <!-- Icône de suppression -->
-                  <span class="text-red-700 text-xs hidden sm:inline">Supprimer</span>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- Tableaux de Données (Style Session) -->
+      <div class="overflow-hidden border border-gray-200 rounded-lg shadow-sm bg-white mb-6">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50 uppercase text-[10px] tracking-widest font-black text-gray-400">
+            <tr>
+              <th scope="col" class="px-4 py-4 text-left">#</th>
+              <th scope="col" class="px-3 py-4 text-left">
+                {{ effets.length ? 'Effet Attendu' : (objectifs.length ? 'Objectif Stratégique' : 'Axe Stratégique') }}
+              </th>
+              <th scope="col" class="px-4 py-4 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
+            <tr v-for="(item, index) in (effets.length ? effets : (objectifs.length && !effets.length ? objectifs : axes))" 
+                :key="item.id" 
+                class="hover:bg-gray-50 transition-colors"
+                :class="editableRowId === item.id ? 'bg-amber-50/30' : ''">
+              
+              <td class="px-4 py-4 whitespace-nowrap text-[10px] font-bold text-gray-400">
+                {{ (index + 1).toString().padStart(2, '0') }}
+              </td>
 
-      <!-- Tableau des Objectifs Stratégiques -->
-      <table v-if="objectifs.length && !effets.length" class="w-full text-sm md:text-base text-gray-500 border-collapse border border-gray-200 shadow-md sm:rounded-lg mb-6">
-        <thead class="text-xs md:text-sm text-gray-700 uppercase bg-gray-50">
-          <tr>
-            <th class="border border-gray-300 px-4 py-2">#</th>
-            <th class="border border-gray-300 px-4 py-2">Objectifs Stratégiques</th>
-            <th class="border border-gray-300 px-4 py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(objectif, index) in objectifs" :key="objectif.id">
-            <td class="border border-gray-300 px-4 py-2">{{ index + 1 }}</td>
-            <td class="border border-gray-300 px-4 py-2">
-              <input
-                v-model="objectif.libelle"
-                type="text"
-                class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white text-sm md:text-base"
-                :disabled="editableRowId !== objectif.id"
-              />
-            </td>
-            <td class="px-2 flex items-center justify-center space-x-6 border border-gray-300">
-              <button 
-                v-if="editableRowId !== objectif.id"
-                @click="editableRowId = objectif.id" 
-                class="text-yellow-500 py-1 rounded hover:bg-yellow-100 flex flex-col items-center justify-center"
-                title="Modifier"
-              >
-                <i class="fas fa-edit"></i>
-                <span class="text-xs hidden sm:inline">Modifier</span>
-              </button>
-              <button
-                v-if="editableRowId === objectif.id"
-                @click.stop="sauvegarderObjectif(objectif)"
-                class="text-green-700 px-2 py-2 rounded hover:bg-green-200 flex flex-col items-center justify-center"
-                title="Valider la modification"
-              >
-                <i class="fas fa-check"></i>
-                <span class="hidden sm:inline text-xs md:text-sm">Valider</span>
-              </button>
-              <!-- Bouton Annuler -->
-            <button 
-              v-if="editableRowId === objectif.id"
-              @click="annulerModification" 
-              class="text-gray-700 py-1 rounded hover:bg-gray-200 flex flex-col items-center justify-center"
-              title="Annuler"
-            >
-              <i class="fas fa-times"></i>
-              <span class="text-xs hidden sm:inline">Annuler</span>
-            </button>
-            <button 
-            v-if="editableRowId !== objectif.id"
-              @click="supprimerObjectif(objectif.id)" 
-              class=" text-red-700 px-3 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center">
-              <i class="fas fa-trash-alt"></i> <!-- Icône de suppression -->
-              <span class="text-red-700 text-xs hidden sm:inline">Supprimer</span>
-          </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              <td class="px-3 py-4">
+                <div v-if="editableRowId !== item.id" class="text-sm font-bold text-gray-800 break-words line-clamp-2">
+                  {{ item.libelle }}
+                </div>
+                <input
+                  v-else
+                  v-model="item.libelle"
+                  type="text"
+                  class="bg-white border-2 border-amber-300 rounded-lg px-3 py-1.5 text-sm font-bold text-gray-800 focus:ring-0 focus:border-amber-500 w-full"
+                />
+              </td>
 
-      <!-- Tableau des Axes Stratégiques -->
-      <table v-if="axes.length && !objectifs.length" class="w-full text-sm md:text-base text-gray-500 border-collapse border border-gray-200 shadow-md sm:rounded-lg mb-6">
-        <thead class="text-xs md:text-sm text-gray-700 uppercase bg-gray-50">
-          <tr>
-            <th class="border border-gray-300 px-4 py-2">#</th>
-            <th class="border border-gray-300 px-4 py-2">Axes Stratégiques</th>
-            <th class="border border-gray-300 px-4 py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(axe, index) in axes" :key="axe.id">
-            <td class="border border-gray-300 px-4 py-2">{{ index + 1 }}</td>
-            <td class="border border-gray-300 px-4 py-2">
-              <input
-                v-model="axe.libelle"
-                type="text"
-                class="bg-transparent px-4 py-2 w-full text-gray-900 dark:text-white text-sm md:text-base"
-                :disabled="editableRowId !== axe.id"
-              />
-            </td>
-            <td class="px-2 flex items-center justify-center space-x-6 border border-gray-300">
-              <button 
-                v-if="editableRowId !== axe.id"
-                @click="editableRowId = axe.id" 
-                class="text-yellow-500 py-1 rounded hover:bg-yellow-100 flex flex-col items-center justify-center"
-                title="Modifier"
-              >
-                <i class="fas fa-edit"></i>
-                <span class="text-xs hidden sm:inline">Modifier</span>
-              </button>
-              <button
-               v-if="editableRowId === axe.id"
-                @click.stop="sauvegarderAxe(axe)"
-                class="text-green-700 px-2 py-2 rounded hover:bg-green-200 flex flex-col items-center justify-center"
-                title="Valider la modification"
-              >
-                <i class="fas fa-check"></i>
-                <span class="hidden sm:inline text-xs md:text-sm">Valider</span>
-              </button>
-              <!-- Bouton Annuler -->
-              <button 
-                v-if="editableRowId === axe.id"
-                @click="annulerModification" 
-                class="text-gray-700 py-1 rounded hover:bg-gray-200 flex flex-col items-center justify-center"
-                title="Annuler"
-              >
-                <i class="fas fa-times"></i>
-                <span class="text-xs hidden sm:inline">Annuler</span>
-              </button>
-              <button 
-                v-if="editableRowId !== axe.id"
-                  @click="supprimerAxe(axe.id)"  
-                  class=" text-red-700 px-3 py-1 rounded hover:bg-red-200 flex flex-col items-center justify-center">
-                  <i class="fas fa-trash-alt"></i> <!-- Icône de suppression -->
-                  <span class="text-red-700 text-xs hidden sm:inline">Supprimer</span>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              <td class="px-4 py-4 whitespace-nowrap">
+                <div class="flex items-center justify-center gap-2">
+                  <!-- Mode Consultation -->
+                  <template v-if="editableRowId !== item.id">
+                    <button @click="editableRowId = item.id" 
+                            class="flex items-center gap-1 px-2 py-1 text-amber-600 hover:bg-amber-50 rounded border border-transparent hover:border-amber-100 transition-all font-black text-[9px] uppercase tracking-tighter">
+                      <i class="fas fa-edit text-[10px]"></i> Modifier
+                    </button>
+                    <button @click="effets.length ? supprimerEffet(item.id) : (objectifs.length ? supprimerObjectif(item.id) : supprimerAxe(item.id))" 
+                            class="flex items-center gap-1 px-2 py-1 text-rose-500 hover:bg-rose-50 rounded border border-transparent hover:border-rose-100 transition-all font-black text-[9px] uppercase tracking-tighter">
+                      <i class="fas fa-trash-alt text-[10px]"></i> Supprimer
+                    </button>
+                  </template>
+
+                  <!-- Mode Édition -->
+                  <template v-else>
+                    <button @click="effets.length ? sauvegarderEffet(item) : (objectifs.length ? sauvegarderObjectif(item) : sauvegarderAxe(item))" 
+                            class="px-4 py-1.5 bg-emerald-600 text-white rounded-md font-bold text-[10px] uppercase tracking-wider shadow-sm hover:bg-emerald-700 transition-all active:scale-95">
+                      <i class="fas fa-check mr-1 text-[8px]"></i> Valider
+                    </button>
+                    <button @click="annulerModification" 
+                            class="px-3 py-1.5 bg-gray-100 text-gray-500 rounded-md font-bold text-[10px] uppercase tracking-wider hover:bg-gray-200 transition-all">
+                      Annuler
+                    </button>
+                  </template>
+                </div>
+              </td>
+            </tr>
+
+            <!-- État Vide -->
+            <tr v-if="!axes.length && !objectifs.length && !effets.length">
+              <td colspan="3" class="py-12 text-center text-gray-400 font-bold text-sm uppercase tracking-widest italic">
+                Aucune donnée disponible
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Section Droite: Actions -->

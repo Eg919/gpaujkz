@@ -26,7 +26,7 @@ class AuthController extends Controller
         ]);
 
         // Log pour suivre la tentative de connexion
-        Log::info('Tentative de connexion', ['email' => $credentials['email']]);
+        Log::info('Tentative de connexion');
 
         // Recherche de l'utilisateur par email
         $user = User::where('email', $credentials['email'])->first();
@@ -58,10 +58,9 @@ class AuthController extends Controller
             } else {
                 // Ou avec une condition explicite
                 $structure = Structure::where('id', $user->structure_id)->first();
-                if($user->etat= "actif" && $structure ->etat="actif"){
+                if($structure && strtolower($user->etat) === "actif" && strtolower($structure->etat) === "actif"){
                     return response()->json([
                         'message' => 'Connexion réussie.',
-                        'token' => $user->createToken('API Token')->plainTextToken,
                         'redirect' => '/admin' // Rediriger vers la page d'accueil ou tableau de bord
                     ]);
                 }
@@ -116,11 +115,9 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $user = $request->user();
-        // Révoquer tous les tokens personnels de l'utilisateur
         // Optionnel : invalider la session de l'utilisateur
         $request->session()->invalidate();
-        $user->tokens()->delete();
-       //  $request->session()->regenerateToken();
+        $request->session()->regenerateToken();
         return response()->json(['message' => 'Déconnexion réussie'], 200);
     }
 

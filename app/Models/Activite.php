@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Activite extends Model
+class Activite extends Model implements \OwenIt\Auditing\Contracts\Auditable
 {
-    use HasFactory;
+    use HasFactory, \OwenIt\Auditing\Auditable;
 
     // Définir les colonnes qui peuvent être assignées en masse (mass assignable)
     protected $fillable = [
@@ -16,6 +16,8 @@ class Activite extends Model
         'etat_slection',
         'etat_activite',
         'partenaire',
+        'partenaires_list',
+        'motif_rejet',
         'hort_progamme',
         'finance_partenaire',
         'etat',
@@ -37,6 +39,7 @@ class Activite extends Model
         'taux_t4',
         'confirmation_presi',
         'observation',
+        'motif_rejet',
         'user_id',
         'effets_attendus_id',
         'objectif_strategique_id',
@@ -84,9 +87,64 @@ class Activite extends Model
         return $this->belongsTo(Structure::class, 'structure_id');
     }
     
+    public function structuresPartenaires()
+    {
+        return $this->belongsToMany(Structure::class, 'activite_structure_partenaire', 'activite_id', 'structure_id')->withTimestamps();
+    }
+    
     public function indicateurs()
     {
         return $this->hasMany(Indicateur::class, 'activite_id');
     }
+
+    /**
+     * Accesseur : retourne les partenaires depuis partenaires_list (JSON)
+     * ou fallback sur l'ancien champ partenaire (string) pour compatibilité.
+     */
+    public function getPartenairesDetailsAttribute()
+    {
+        $partenaires = [];
+
+
+        // Ajouter les partenaires de la liste JSON
+        if (!empty($this->partenaires_list)) {
+            foreach ($this->partenaires_list as $p) {
+                $partenaires[] = $p;
+            }
+        } elseif (!empty($this->partenaire)) {
+            // Fallback : ancien champ string
+            $partenaires[] = [
+                'nom' => $this->partenaire,
+                'montant' => $this->finance_partenaire ?? 0,
+            ];
+        }
+
+        return $partenaires;
+    }
+
+    /**
+     * Accesseur : retourne le sigle de la structure du créateur de l'activité.
+     * Priorise la structure de l'utilisateur qui a créé l'activité.
+     */
+    public function getStructureSigleAttribute()
+    {
+        // On récupère le sigle de la structure de l'utilisateur qui a créé l'activité (créateur)
+        if ($this->user && $this->user->structure) {
+            return $this->user->structure->sigle;
+        }
+
+        // Si l'utilisateur n'est pas chargé ou n'a pas de structure, fallback sur la relation directe
+        if ($this->structure) {
+            return $this->structure->sigle;
+        }
+
+        return 'UKZ';
+    }
+
+    protected $appends = ['partenaires_details', 'structure_sigle'];
+
+    protected $casts = [
+        'partenaires_list' => 'array',
+    ];
     
 }

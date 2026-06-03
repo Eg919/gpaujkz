@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Structure extends Model
+class Structure extends Model implements \OwenIt\Auditing\Contracts\Auditable
 {
-    use HasFactory;
+    use HasFactory, \OwenIt\Auditing\Auditable;
     /**
      * Le nom de la table associée au modèle.
      *
@@ -33,5 +33,10 @@ class Structure extends Model
     public function user()
     {
         return $this->hasMany(User::class);
+    }
+
+    public function activitesPartenaires()
+    {
+        return $this->belongsToMany(Activite::class, 'activite_structure_partenaire', 'structure_id', 'activite_id')->withTimestamps();
     }
 }

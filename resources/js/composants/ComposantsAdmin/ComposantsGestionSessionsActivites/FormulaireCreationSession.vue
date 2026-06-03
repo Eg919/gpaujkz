@@ -83,9 +83,10 @@
 
       <button 
         type="submit" 
-        class="w-full bg-green-500 text-white p-2 sm:p-3 rounded-lg hover:bg-green-700 mt-3"
+        :disabled="loading"
+        class="w-full bg-green-500 text-white p-2 sm:p-3 rounded-lg hover:bg-green-700 mt-3 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Créer une Session
+        {{ loading ? 'Création en cours...' : 'Créer une Session' }}
       </button>
     </form>
   </div>
@@ -107,7 +108,7 @@ export default {
       errors: {},
       successMessage: '',
       errorMessage: '',
-      csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+      loading: false,
     };
   },
   mounted() {
@@ -125,6 +126,7 @@ export default {
     },
 
     async submitForm() {
+      if (this.loading) return;
       this.errors = {};
       this.successMessage = '';
       this.errorMessage = '';
@@ -151,12 +153,9 @@ export default {
       }
 
       if (Object.keys(this.errors).length === 0) {
+        this.loading = true;
         try {
-          const response = await axios.post('/api/sessions-activites', this.form, {
-            headers: {
-              'X-CSRF-TOKEN': this.csrfToken
-            },
-          });
+          const response = await axios.post('/api/sessions-activites', this.form);
           this.$emit('submitForm');
           this.successMessage = 'Session créée avec succès!';
           setTimeout(() => {
@@ -170,6 +169,8 @@ export default {
           } else {
             this.errorMessage = "Une erreur de connexion est survenue.";
           }
+        } finally {
+          this.loading = false;
         }
       }
     },

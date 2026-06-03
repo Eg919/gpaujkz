@@ -8,6 +8,13 @@ use Illuminate\Support\Facades\Log;
 
 class StructureController extends Controller
 {
+    private function verifyIsAdmin()
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if (!$user || !in_array($user->role, ['Administrateur', 'Ordonnateur'])) {
+            throw new \Exception("Accès non autorisé : vous n'avez pas les droits d'administration pour cette action.");
+        }
+    }
     /**
      * Affiche la liste des structures.
      */
@@ -27,6 +34,12 @@ class StructureController extends Controller
     public function store(Request $request)
 {
     // Validation des données d'entrée
+    try {
+        $this->verifyIsAdmin();
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 403);
+    }
+
     $validated = $request->validate([
         'libelle_structure' => 'required|string|max:255',
         'sigle' => 'required|string|max:50',
@@ -45,6 +58,7 @@ class StructureController extends Controller
     public function update(Request $request, $id)
 {
     try {
+        $this->verifyIsAdmin();
         // Récupération de l'élément à mettre à jour
         $structure = Structure::findOrFail($id);
 
@@ -73,6 +87,7 @@ class StructureController extends Controller
     public function destroy($id)
     {
         try {
+            $this->verifyIsAdmin();
             $structure = Structure::findOrFail($id);
             $structure->delete();
             return response()->json(null, 204);
@@ -83,6 +98,12 @@ class StructureController extends Controller
     }
     public function supprimerStructure($id)
 {
+    try {
+        $this->verifyIsAdmin();
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 403);
+    }
+
     // Vérifier si la structure est associée à un utilisateur
     $structureAssociee = DB::table('users')->where('structure_id', $id)->exists();
 
