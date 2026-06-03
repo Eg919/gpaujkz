@@ -67,9 +67,10 @@
       <!-- Bouton de soumission -->
       <button
         type="submit"
-        class="w-full bg-green-700 text-white p-2 sm:p-3 rounded-lg hover:bg-green-600 transition duration-200"
+        :disabled="loading"
+        class="w-full bg-green-700 text-white p-2 sm:p-3 rounded-lg hover:bg-green-600 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Se connecter
+        {{ loading ? 'Connexion en cours...' : 'Se connecter' }}
       </button>
     </form>
   </div>
@@ -87,11 +88,13 @@ export default {
       },
       errors: {},
       errorMessage: '',
+      loading: false,
       csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
     };
   },
   methods: {
     async submitLogin() {
+      if (this.loading) return;
       this.errors = {};
       this.errorMessage = '';
 
@@ -106,12 +109,11 @@ export default {
       }
 
       if (Object.keys(this.errors).length === 0) {
+        this.loading = true;
         try {
-          const response = await axios.post('/api/login', this.form, {
-            headers: {
-              'X-CSRF-TOKEN': this.csrfToken,
-            },
-          });
+          // Rafraîchir le cookie CSRF avant la connexion
+          await axios.get('/sanctum/csrf-cookie');
+          const response = await axios.post('/api/login', this.form);
           this.$emit('submitLogin');
           if (response.data.redirect) {
             this.$router.push(response.data.redirect);
@@ -126,6 +128,8 @@ export default {
             this.errorMessage = "Une erreur est survenue. Veuillez réessayer.";
           }
           console.error(error);
+        } finally {
+          this.loading = false;
         }
       }
     },

@@ -38,7 +38,7 @@ class AppServiceProvider extends ServiceProvider
             $structure = Structure::create([
                 'libelle_structure' => 'Direction des Études, de la Planification et des Statistiques',
                 'sigle' => 'DEPS',
-                'etat' => 'Actif'
+                'etat' => 'actif'
             ]);
         }
 
@@ -47,8 +47,8 @@ class AppServiceProvider extends ServiceProvider
 
         if (!$existingUser) {
             // Générer un mot de passe aléatoire sécurisé
-            //$motDePasse = Str::random(12); // Génère un mot de passe de 12 caractères
-            $motDePasse = '123456789';
+           // $motDePasse = Str::random(16);
+           $motDePasse ='12345678';
             // Création de l'utilisateur
             $user = User::create([
                 'nom' => 'Admin',
@@ -57,13 +57,12 @@ class AppServiceProvider extends ServiceProvider
                 'password' => Hash::make($motDePasse),
                 'role' => 'Administrateur_DSI',
                 'etat' => 'Actif',
-                'structure_id' => $structure->id, // Associer la structure
+                'structure_id' => $structure->id,
             ]);
 
-            // Envoyer l'email après la création de l'utilisateur
-            $messageContent = "Bonjour Monsieur/Madame L' Gestionnaire, 
-            bienvenue sur notre plateforme ! Votre mot de passe par défaut est : $motDePasse. 
-            Vous devez le changer à la première connexion.";
+            // Envoyer un lien de réinitialisation au lieu du mot de passe en clair
+            $messageContent = "Bonjour Monsieur/Madame le Gestionnaire, 
+            bienvenue sur notre plateforme ! Veuillez réinitialiser votre mot de passe via le lien de connexion.";
             
             EmailService::sendEmail($user->email, $messageContent);
         }

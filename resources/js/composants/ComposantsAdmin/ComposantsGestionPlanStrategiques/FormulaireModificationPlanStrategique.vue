@@ -103,6 +103,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
   name: 'FormulaireModificationPlanStrategique',
   props: {
@@ -139,11 +140,8 @@ export default {
   methods: {
     async fetchPlan() {
       try {
-        const response = await fetch(`/api/plans-strategiques/${this.planId}`, {
-          method: 'GET',
-        });
-        if (!response.ok) throw new Error('Erreur lors de la récupération des données.');
-        const data = await response.json();
+        const response = await axios.get(`/api/plans-strategiques/${this.planId}`);
+        const data = response.data;
         this.form = {
           titre: data.titre,
           debut: data.debut,
@@ -156,35 +154,22 @@ export default {
     },
     async handleSubmit() {
       this.errors = {};
-
-      // Validation des données
       if (!this.form.titre) this.errors.titre = 'Le titre est requis.';
       if (this.form.debut > this.form.fin) {
         this.errors.fin = 'La date de fin doit être postérieure à la date de début.';
         return;
       }
-
       this.isSubmitting = true;
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-      if (this.planId) { // Gestion spécifique pour PUT
+      if (this.planId) {
         try {
-          const response = await fetch(`/api/plans-strategiques/${this.planId}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': csrfToken,
-            },
-            body: JSON.stringify(this.form),
-          });
+          await axios.put(`/api/plans-strategiques/${this.planId}`, this.form);
           this.$emit('handleSubmit');
           this.showAlert('Plan stratégique modifié avec succès!', true);
-          if (!response.ok) throw new Error('Erreur serveur');
           this.$emit('updatePlan');
           this.fermerFormulaire();
         } catch (error) {
           console.error(error);
-          this.showAlert('Une erreur est survenue lors de la mise à jour, veuillez réessayer.', true);
+          this.showAlert('Une erreur est survenue lors de la mise à jour, veuillez réessayer.', false);
         } finally {
           this.isSubmitting = false;
         }

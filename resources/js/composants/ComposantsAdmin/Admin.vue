@@ -1,10 +1,10 @@
 <template>
-  <div class="flex flex-col min-h-screen">
+  <div class="flex flex-col h-screen overflow-hidden print:h-auto print:overflow-visible">
     <!-- Barre de navigation en haut -->
-    <BarreDeNavigation />
+    <BarreDeNavigation class="print:hidden" />
 
-    <!-- Vue principale rendue par le routeur -->
-    <main class="flex-grow relative">
+    <!-- Vue principale rendue par le routeur avec scroll vertical -->
+    <main class="flex-grow relative pt-14 overflow-y-auto custom-scrollbar bg-gray-50/50 print:pt-0 print:overflow-visible print:h-auto">
       <router-view v-slot="{ Component }">
         <component :is="Component" v-if="Component" />
         <Bienvenue v-else />
@@ -12,7 +12,7 @@
     </main>
 
     <!-- Bas de page en bas -->
-    <BasDePage />
+    <BasDePage class="print:hidden" />
   </div>
 </template>
 
@@ -31,9 +31,25 @@ export default {
 };
 </script>
 
-
 <style scoped>
-.main {
-  padding: 1rem;
+/* Scrollbar personnalisée pour le conteneur principal */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #fbbf24; /* Couleur amber pour matcher le thème */
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #f59e0b;
+}
+
+/* Fallback Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #fbbf24 #f1f1f1;
 }
 </style>

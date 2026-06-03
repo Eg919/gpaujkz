@@ -24,7 +24,7 @@
       </div>
 
       <!-- Titre -->
-      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center">Canevas des Activités</h2>
+      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center">Modification de l'Activité</h2>
 
       <!-- Section Activité -->
       <div class="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -47,7 +47,6 @@
                 required
               >
                 <option value="" disabled>-- Sélectionner un objectif --</option>
-                <option value=""> Aucun objectif</option>
                 <option 
                   v-for="objectif in ObjectifStrategique" 
                   :key="objectif.id" 
@@ -73,7 +72,6 @@
                 required
               >
                 <option value="" disabled>-- Sélectionner un effet --</option>
-                <option value=""> Aucun effet</option>
                 <option 
                   v-for="effet in effetAttendus" 
                   :key="effet.id" 
@@ -124,7 +122,6 @@
               />
             </div>
 
-            <!-- Montant État -->
             <div>
               <label 
                 for="financeEtat" 
@@ -133,43 +130,53 @@
                 État : Montant
               </label>
               <input 
-                v-model="formactivite.finance_etat" 
+                :value="formatValue(formactivite.finance_etat)"
+                @input="formactivite.finance_etat = $event.target.value.replace(/\s/g, '')"
                 id="financeEtat" 
-                type="number" 
-                class="w-full  sm:p-2 border border-gray-300 rounded"
-              />
-            </div>
-
-            <!-- Partenaire -->
-            <div>
-              <label 
-                for="partenaire" 
-                class="block text-sm sm:text-base text-gray-700 font-medium mb-2"
-              >
-                Partenaire
-              </label>
-              <input 
-                v-model="formactivite.partenaire" 
-                id="partenaire" 
                 type="text" 
                 class="w-full  sm:p-2 border border-gray-300 rounded"
               />
             </div>
 
-            <!-- Montant Partenaire -->
-            <div>
-              <label 
-                for="financePartenaire" 
-                class="block text-sm sm:text-base text-gray-700 font-medium mb-2"
+          </div>
+
+          <!-- Partenaires (liste dynamique) -->
+          <div class="mt-2">
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-sm sm:text-base text-gray-700 font-medium">Partenaires</label>
+              <button 
+                @click.prevent="ajouterPartenaire" 
+                type="button" 
+                class="text-xs border border-green-500 bg-green-500 text-white px-2 py-0.5 rounded hover:bg-green-700"
               >
-                Partenaire : Montant
-              </label>
+                <i class="fas fa-plus"></i> Ajouter
+              </button>
+            </div>
+            <div 
+              v-for="(p, index) in partenaires" 
+              :key="index" 
+              class="grid grid-cols-[1fr_1fr_auto] gap-2 mb-1 items-center"
+            >
               <input 
-                v-model="formactivite.finance_partenaire" 
-                id="financePartenaire" 
-                type="number" 
-                class="w-full  sm:p-2 border border-gray-300 rounded"
+                v-model="p.nom" 
+                type="text" 
+                placeholder="Nom du partenaire"
+                class="w-full sm:p-2 border border-gray-300 rounded text-sm"
               />
+              <input 
+                :value="formatValue(p.montant)" 
+                @input="p.montant = $event.target.value.replace(/\s/g, '')"
+                type="text" 
+                placeholder="Montant"
+                class="w-full sm:p-2 border border-gray-300 rounded text-sm"
+              />
+              <button 
+                @click.prevent="supprimerPartenaire(index)" 
+                type="button" 
+                class="text-red-500 hover:text-red-700"
+              >
+                <i class="fas fa-trash-alt"></i>
+              </button>
             </div>
           </div>
         </fieldset>
@@ -178,29 +185,34 @@
       <!-- Section Structure et Période -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <!-- Structure -->
-        <fieldset class="border border-gray-300 px-4  rounded">
-          <legend class="text-base sm:text-lg font-bold px-2">Structure</legend>
-          <select 
-            v-model="formactivite.structure_id" 
-            id="structure" 
-            class="w-full  sm:p-2 border border-gray-300 rounded"
-            required
-          >
-            <option :value="userStructure?.id">
-              {{ userStructure?.sigle }}
-            </option>
-            <option 
-              v-if="isAdmin" 
-              v-for="structure in structures" 
-              :key="structure.id" 
-              :value="structure.id"
-            >
-              {{ structure.sigle }}
-            </option>
-            <option v-else :value="userStructure?.id">
-              {{ userStructure?.sigle }}
-            </option>
-          </select>
+        <fieldset class="border border-gray-300 px-4 rounded">
+          <legend class="text-base sm:text-lg font-bold px-2">Structures Partenaires</legend>
+          <div class="flex flex-col gap-2 mt-2 mb-2">
+            <input 
+              v-model="rechercheStructure" 
+              type="text" 
+              placeholder="Rechercher une structure..." 
+              class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400"
+            />
+            <div class="h-32 overflow-y-auto border border-gray-200 rounded p-2 bg-gray-50">
+              <label 
+                v-for="structure in structuresFiltrees" 
+                :key="structure.id" 
+                class="flex items-center space-x-2 mb-1 cursor-pointer hover:bg-gray-100 p-1 rounded"
+              >
+                <input 
+                  type="checkbox" 
+                  :value="structure.id" 
+                  v-model="formactivite.structures_partenaires_ids"
+                  class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-400 rounded"
+                />
+                <span class="text-sm font-medium text-gray-700">{{ structure.sigle }}</span>
+              </label>
+              <div v-if="structuresFiltrees.length === 0" class="text-xs text-gray-500 italic p-1">
+                Aucune structure trouvée.
+              </div>
+            </div>
+          </div>
         </fieldset>
 
         <!-- Périodes -->
@@ -246,18 +258,20 @@
         </div>
         <button 
           @click.prevent="ajouterIndicateur" 
-          class="border-2 border-green-500 bg-yellow-500 text-white px-4 py-1 sm:px-6 sm:py-1 rounded-lg hover:bg-yellow-700"
+          type="button"
+          class="text-xs border border-green-500 bg-green-500 text-white px-2 py-0.5 rounded hover:bg-green-700"
         >
-          <i class="fas fa-plus"></i> Ajouter un indicateur
+          <i class="fas fa-plus"></i> Ajouter
         </button>
       </fieldset>
       <!-- Bouton Enregistrer -->
       <div class="text-end">
         <button 
           type="submit" 
-          class="px-4 mt-2 sm:px-6 sm:py-1 border-2 border-green-500 bg-green-500 text-white rounded-lg hover:bg-green-700"
+          :disabled="loading"
+          class="px-4 mt-2 sm:px-6 sm:py-1 border-2 border-green-500 bg-green-500 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Enregistrer
+          {{ loading ? 'Enregistrement...' : 'Enregistrer' }}
         </button>
       </div>
     </form>
@@ -278,12 +292,15 @@ export default {
     return {
       alertMessage: '',
       isSuccess: false,
-      userStructure: null, // La structure de l'utilisateur connecté
+      loading: false,
       isAdmin: false, // Statut de l'utilisateur connecté
+      rechercheStructure: '',
+      structures: [],
       ObjectifStrategique: [],
       effetAttendus: [],
       formactivite: {},
       indicateur: [],
+      partenaires: [],
       trimestres: [
         { label: 'Ttrimestre 1', model: 'trimestre_1' },
         { label: 'Ttrimestre 2', model: 'trimestre_2' },
@@ -298,6 +315,18 @@ export default {
       ]
     };
   },
+  computed: {
+    structuresFiltrees() {
+      if (!this.rechercheStructure) {
+        return this.structures;
+      }
+      const terme = this.rechercheStructure.toLowerCase();
+      return this.structures.filter(s => 
+        (s.sigle && s.sigle.toLowerCase().includes(terme)) || 
+        (s.libelle_structure && s.libelle_structure.toLowerCase().includes(terme))
+      );
+    }
+  },
   methods: {
     async fetchObjectifs() {
       this.loading = true;
@@ -306,7 +335,7 @@ export default {
         const response = await axios.get("/api/objectifs-strategiques-Ouvert");
         if (response.data.status === "success") {
           this.ObjectifStrategique = response.data.data; // Récupère la liste des objectifs
-        console(this.ObjectifStrategique);
+          console.log(this.ObjectifStrategique);
         } else {
           this.error = "Erreur lors de la récupération des objectifs.";
         }
@@ -330,54 +359,57 @@ export default {
     },
     async fetchStructures() {
       try {
-        const response = await axios.get('/api/structures', {
-          headers: {
-            'X-CSRF-TOKEN': this.csrfToken
-          }
-        });
+        const response = await axios.get('/api/structures');
         this.structures = response.data;
       } catch (error) {
         console.error('Erreur lors de la récupération des structures:', error);
       }
     },
     async fetchDetails() {
-  this.loading = true;
-  this.error = false;
-  try {
-    // Utilisation de fetch pour récupérer les données
-    const response = await fetch(`/api/activites-detaille/${this.activiteId}`);
-
-    // Vérification de la réponse avant de continuer
-    if (!response.ok) {
-      throw new Error(`Erreur lors de la récupération des données: ${response.statusText}`);
-    }
-
-    // Conversion de la réponse en JSON
-    const data = await response.json();
-
-    // Mise à jour des données dans l'état
-    this.formactivite = data.activite;
-    this.indicateur = data.indicateurs;
-    this.structure = data.structure;
-    this.objectifStrategique = data.objectifStrategique;
-    this.effetAttendu = data.effet_attendu;
-  } catch (error) {
-    // Vérification si l'objet console est valide avant d'utiliser console.error
-    if (typeof console === 'object' && typeof console.error === 'function') {
-      console.error("Erreur :", error);
-    } else {
-      alert("Erreur dans la récupération des données : " + error.message);
-    }
-    this.error = true;
-  } finally {
-    this.loading = false;
-  }
-},
+      this.loading = true;
+      this.error = false;
+      try {
+        const response = await axios.get(`/api/activites-detaille/${this.activiteId}`);
+        const data = response.data;
+        this.formactivite = data.activite;
+        if (data.activite.structures_partenaires) {
+          this.formactivite.structures_partenaires_ids = data.activite.structures_partenaires.map(s => s.id);
+        } else {
+          this.formactivite.structures_partenaires_ids = [];
+        }
+        this.indicateur = data.indicateurs;
+        this.structure = data.structure;
+        this.objectifStrategique = data.objectifStrategique;
+        this.effetAttendu = data.effet_attendu;
+        if (data.activite.partenaires_list && Array.isArray(data.activite.partenaires_list)) {
+          this.partenaires = data.activite.partenaires_list.map(p => ({ nom: p.nom || '', montant: p.montant || '' }));
+        } else if (data.activite.partenaire) {
+          this.partenaires = [{ nom: data.activite.partenaire, montant: data.activite.finance_partenaire || '' }];
+        } else {
+          this.partenaires = [];
+        }
+      } catch (error) {
+        console.error("Erreur :", error);
+        this.error = true;
+      } finally {
+        this.loading = false;
+        this.fetchEffetsAttendus();
+      }
+    },
 
     
 async ModifierFormulaire() {
+  if (this.loading) return;
+  this.loading = true;
+  // Filtrer les partenaires vides et inclure dans formactivite
+  const partenairesFiltered = this.partenaires.filter(p => p.nom && p.nom.trim() !== '');
   const dataToSend = {
-    formactivite: this.formactivite,
+    formactivite: {
+      ...this.formactivite,
+      partenaires_list: partenairesFiltered.length > 0 ? partenairesFiltered : null,
+      partenaire: partenairesFiltered.map(p => p.nom).join(', ') || null,
+      finance_partenaire: partenairesFiltered.reduce((sum, p) => sum + (Number(p.montant) || 0), 0) || null,
+    },
     Indicateur: this.indicateur,
   };
 
@@ -415,8 +447,16 @@ async ModifierFormulaire() {
     if (error.response && error.response.data && error.response.data.message) {
       console.error('Détail de l\'erreur:', error.response.data.message);
     }
+  } finally {
+    this.loading = false;
   }
 },
+    formatValue(val) {
+      if (val === null || val === undefined || val === '') return '';
+      // Retirer tout ce qui n'est pas un chiffre pour le formatage
+      const cleanVal = val.toString().replace(/\s/g, '').replace(/[^\d]/g, '');
+      return cleanVal.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    },
     async fetchSUserInfo() {
   try {
     // Récupérer les informations de l'utilisateur
@@ -433,12 +473,22 @@ async ModifierFormulaire() {
 
     // Ajouter un indicateur
     ajouterIndicateur() {
-      this.Indicateur.push({ indicateur: '', unite: '', reference: '', cible: '' });
+      this.indicateur.push({ indicateur: '', unite: '', reference: '', cible: '' });
     },
 
     // Supprimer un indicateur
     supprimerIndicateur(index) {
-      this.Indicateur.splice(index, 1);
+      this.indicateur.splice(index, 1);
+    },
+
+    // Ajouter un partenaire
+    ajouterPartenaire() {
+      this.partenaires.push({ nom: '', montant: '' });
+    },
+
+    // Supprimer un partenaire
+    supprimerPartenaire(index) {
+      this.partenaires.splice(index, 1);
     },
 
     fermerFormulaire() {
@@ -454,7 +504,6 @@ async ModifierFormulaire() {
   },
   mounted() {
     this.fetchObjectifs();
-    this.fetchEffetsAttendus();
     this.fetchStructures();
     this.fetchSUserInfo();
     this.fetchDetails();

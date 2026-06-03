@@ -83,8 +83,8 @@
     </div>
   </div>
 </template>
-
 <script>
+import axios from 'axios';
 export default {
   props: {
     axeStrategiqueId: {
@@ -111,42 +111,22 @@ export default {
     async soumettreFormulaireObjectifs() {
       this.erreurs = {};
       this.enCoursDeSoumission = true;
-
-      // Validation
       if (this.objectifs.length === 0 || this.objectifs.some(o => !o.libelle)) {
         this.erreurs.general = 'Veuillez ajouter au moins un objectif stratégique avec un libellé.';
         this.enCoursDeSoumission = false;
         return;
       }
-
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
       try {
-        const response = await fetch('/api/objectifs-strategiques', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-          },
-          body: JSON.stringify({
-            axe_strategique_id: this.axeStrategiqueId,
-            objectifs: this.objectifs,
-          }),
+        await axios.post('/api/objectifs-strategiques', {
+          axe_strategique_id: this.axeStrategiqueId,
+          objectifs: this.objectifs,
         });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Erreur API:', errorData);
-          this.erreurs.general = errorData.message || 'Erreur lors de l\'ajout des objectifs stratégiques.';
-          throw new Error(this.erreurs.general);
-        }
-
-        this.showAlert('Objectifs stratégiques ajoutés avec succès!',true);
+        this.showAlert('Objectifs stratégiques ajoutés avec succès!', true);
         this.fermerFormulaire();
         this.$emit('soumettreFormulaireObjectifs');
       } catch (error) {
         console.error('Erreur:', error);
-        this.showAlert('Une erreur est survenue. Veuillez réessayer.',false);
+        this.showAlert('Une erreur est survenue. Veuillez réessayer.', false);
       } finally {
         this.enCoursDeSoumission = false;
       }

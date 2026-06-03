@@ -1,25 +1,18 @@
 <template>
-    <div class="flex flex-col items-center min-h-screen mt-2">
-      <!-- Conteneur principal -->
-      <div class="w-full max-h-screen overflow-y-auto md:overflow-visible">
-        <!-- Header -->
-        <div class="flex justify-between items-center w-full px-4 md:px-6 py-2 bg-gray-50 shadow-md mt-8">
-          <!-- Retour -->
-          <div class="flex items-center space-x-1">
-            <router-link to="/admin" class="text-blue-500 flex items-center">
-              <i class="fas fa-arrow-left text-lg"></i>
-              <span class="ml-1 text-xs sm:text-sm md:text-base hidden sm:inline">Retour</span>
-            </router-link>
-          </div>
-          <!-- Titre centralisé -->
-          <div class="flex-grow text-center">
-            <h1 class="text-red-500 font-semibold truncate">
-              <span class="block text-xs sm:text-sm md:text-xl lg:text-4xl">
-                Confirmer Activités
-              </span>
-            </h1>
-          </div>
-        </div>
+  <div class="flex flex-col items-center min-h-screen">
+    <!-- Header avec retour et titre (Sober Style) -->
+    <div class="w-full bg-gray-50 border-b border-gray-200 py-3 px-4 md:px-8 flex items-center mb-8">
+      <div class="w-1/4">
+        <router-link to="/admin" class="text-blue-500 hover:text-blue-700 transition-colors flex items-center gap-2">
+          <i class="fas fa-arrow-left text-xl"></i>
+          <span class="text-xs font-bold uppercase hidden md:inline">Retour</span>
+        </router-link>
+      </div>
+      <div class="w-2/4 text-center">
+        <h1 class="text-xl md:text-2xl font-black text-amber-500 uppercase tracking-tighter">Confirmation des Activités</h1>
+      </div>
+      <div class="w-1/4"></div>
+    </div>
   
         <!-- Contenu principal -->
         <div class="w-full mt-4 px-4 md:px-6">
@@ -164,8 +157,7 @@
         <div v-if="alertMessage" :class="['alert', isSuccess ? 'alert-success' : 'alert-error']">
           {{ alertMessage }}
         </div>
-      </div>
-  
+      
       <!-- Formulaire Modification Activité -->
       <FormulaireModificationActivite 
         v-if="showFormulaire" 
@@ -194,13 +186,14 @@
         searchQuery: '',
         alertMessage: '',
         isSuccess: true,
-        showFormulaire: false,
+        isAdmin: false,
+        userInfo: null,
+        refreshCount: 0,
         isMobile: false,
-        csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        actionLoading: false,
       };
     },
     mounted() {
-    console.log("Activités filtrées :", this.filteredActivites); //  Correction
     console.log("Activités validées récupérées :", this.activites);
     
     this.isMobile = window.innerWidth <= 768;
@@ -243,22 +236,24 @@
         }
     },
       async confirmerActivite(activiteId) {
+        if (this.actionLoading) return;
         if(!confirm("Voulez-vous vraiment confirmer cette activitée ?")) {
             return;
         }
+        this.actionLoading = true;
         try {
-          const response = await axios.post(`/api/activites/${activiteId}/confirmer`, {
-            _token: this.csrfToken,
-          });
+          const response = await axios.post(`/api/activites/${activiteId}/confirmer`);
           if (response.status === 200) {
             this.activites = this.activites.map(activite =>
               activite.id === activiteId ? { ...activite, confirmer: true } : activite
             );
             this.showAlert('Activité confirmée avec succès.');
-            this.getActivitesValidees(); // Recharger les activités pour mettre à jour les données  
+            this.getActivitesValidees();
           }
         } catch (error) {
           this.showAlert("Erreur lors de la confirmation.", false);
+        } finally {
+          this.actionLoading = false;
         }
       },
       async tousConfirmer() {
@@ -269,9 +264,7 @@
     this.isLoading = true; // Activer un état de chargement
 
     try {
-        const response = await axios.post('/api/activites-confirmer', {
-            _token: this.csrfToken,
-        });
+        const response = await axios.post('/api/activites-confirmer');
 
         if (response.status === 200) {
             this.showAlert(response.data.message || 'Toutes les activités ont été confirmées.');

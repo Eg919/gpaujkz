@@ -17,7 +17,8 @@ use App\Http\Controllers\StrategieController;
 use App\Http\Controllers\ImportUserController;
 use App\Http\Controllers\NotificationActiviteController;
 use App\Http\Controllers\ImportStructuresController;
-use App\Http\Controllers\ActiviteImportsController;
+use App\Http\Controllers\StatsController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -35,13 +36,13 @@ use App\Http\Controllers\ActiviteImportsController;
 
 use App\Http\Controllers\EmailController;
 
-Route::post('/send-email', [EmailController::class, 'sendEmail']);
-
-    Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login']);
     
     
   
     Route::middleware(['auth:sanctum'])->group(function () {
+        
+        Route::post('/send-email', [EmailController::class, 'sendEmail']);
         
         Route::post('/change-password', [AuthController::class, 'changePassword']);
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -58,12 +59,14 @@ Route::post('/send-email', [EmailController::class, 'sendEmail']);
         Route::get('/structures', [StructureController::class, 'index']);
         Route::get('/structures/count', [StructureController::class, 'count']);
         Route::post('/import-structures', [ImportStructuresController::class, 'importStructures']);
+        Route::get('/download-template-structures', [ImportStructuresController::class, 'downloadTemplate']);
         Route::delete('/structures/supprimer/{id}', [StructureController::class, 'supprimerStructure']);
 
         // Routes pour les utilisateurs
         
 
         Route::post('/import-users', [ImportUserController::class, 'import']);
+        Route::get('/download-template-users', [ImportUserController::class, 'downloadTemplate']);
 
         Route::get('/utilisateurs', [UserController::class, 'index']);
         Route::post('/utilisateurs', [UserController::class, 'store']);
@@ -149,7 +152,17 @@ Route::post('/send-email', [EmailController::class, 'sendEmail']);
         Route::get('/activites-effet/{effetAttenduId}/st', [ActiviteController::class, 'getActivitesByEffetAttenduStructure']);
         Route::get('/activites-effet/{effetAttenduId}/trimestres', [ActiviteController::class, 'getActivitesByEffetAttenduTrimestre']);
         Route::get('/taches/{activiteId}', [TacheController::class, 'getTachesByActivite']);
+        // Routes pour les pièces justificatives
+        Route::post('/taches/{tacheId}/pieces', [TacheController::class, 'ajouterPieceJustificative']);
+        Route::delete('/pieces/{pieceId}', [TacheController::class, 'supprimerPieceJustificative']);
+        Route::get('/taches/{tacheId}/pieces-justificatives', [TacheController::class, 'getPiecesJustificatives']);
         Route::post('/indicateurs', [IndicateurController::class, 'store']);
+        
+        // Routes pour les statistiques
+        Route::get('/stats/global', [StatsController::class, 'getGlobalStats']);
+        Route::get('/stats/structure', [StatsController::class, 'getStructureStats']);
+        Route::get('/stats/dsi', [StatsController::class, 'getDsiStats']);
+        
+        // Routes pour les audits
+        Route::get('/audits', [\App\Http\Controllers\AuditController::class, 'index']);
     });
-    
-    

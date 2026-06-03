@@ -41,11 +41,7 @@ export default {
   methods: {
     async fetchNotifications() {
       try {
-        const response = await axios.get('/api/notifications/non-lues', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+        const response = await axios.get('/api/notifications/non-lues');
         this.notifications = response.data.notifications;
         this.notificationsCount = response.data.notificationsCount;
       } catch (error) {
@@ -55,11 +51,7 @@ export default {
 
     async marquerCommeLue(notificationId) {
       try {
-        await axios.put(`/api/notifications/${notificationId}/lue`, {}, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+        await axios.put(`/api/notifications/${notificationId}/lue`, {});
         this.notifications = this.notifications.filter(
           notification => notification.id !== notificationId
         );

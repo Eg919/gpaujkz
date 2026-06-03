@@ -83,8 +83,8 @@
     </div>
   </div>
 </template>
-
 <script>
+import axios from 'axios';
 export default {
   props: {
     selectedPlanId: {
@@ -111,41 +111,22 @@ export default {
     async soumettreFormulaire() {
       this.erreurs = {};
       this.enCoursDeSoumission = true;
-
-      // Validation
       if (this.axes.length === 0 || this.axes.some(a => !a.libelle)) {
         this.erreurs.general = 'Veuillez ajouter au moins un axe stratégique avec un libellé.';
         this.enCoursDeSoumission = false;
         return;
       }
-
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
       try {
-        const response = await fetch('/api/axes-strategiques', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-          },
-          body: JSON.stringify({
-            plan_strategique_id: this.selectedPlanId,
-            axes: this.axes,
-          }),
+        await axios.post('/api/axes-strategiques', {
+          plan_strategique_id: this.selectedPlanId,
+          axes: this.axes,
         });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          this.erreurs.general = errorData.message || 'Erreur lors de l\'ajout des axes stratégiques.';
-          throw new Error(this.erreurs.general);
-        }
-
         this.showAlert('Axes stratégiques ajoutés avec succès!', true);
         this.$emit('soumettreFormulaire');
         this.fermerFormulaire();
       } catch (error) {
         console.error(error);
-        this.showAlert( 'Une erreur est survenue. Veuillez réessayer.',false);
+        this.showAlert('Une erreur est survenue. Veuillez réessayer.', false);
       } finally {
         this.enCoursDeSoumission = false;
       }

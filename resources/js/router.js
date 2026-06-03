@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'; // Utilisation du mode hash
+import axios from 'axios';
 // Importation des composants
 import Admin from './composants/ComposantsAdmin/Admin.vue';
 import GestionStructures from './composants/ComposantsAdmin/ComposantsGestionStructures/GestionStructures.vue';
@@ -16,7 +17,7 @@ import GestionActivites from './composants/ComposantsAdmin/ComposantsGestionActi
 import GestionConfirmationActivites from './composants/ComposantsAdmin/ComposantsGestionActivites/GestionConfirmationActivites.vue';
 import AdminStat from './composants/ComposantsAdmin/ComposantsDeBase/AdminStat.vue';
 import ContributeursProjet from './composants/ComposantsAdmin/ComposantsDeBase/ContributeursProjet.vue';
-import GestionDesStatistiques from './composants/ComposantsAdmin/ComposantsGestionRapportsTrimestriels/GestionDesStatistiques.vue';
+import GestionMatriceDactivite from './composants/ComposantsAdmin/ComposantsGestionRapportsTrimestriels/GestionMatriceDactivite.vue';
 import GestoinRapport from './composants/ComposantsAdmin/ComposantsGestionRapportsTrimestriels/GestoinRapport.vue';
 import GestoinRapportStructure from './composants/ComposantsAdmin/ComposantsGestionRapportsTrimestriels/GestoinRapportStructure.vue';
 import GestoinRapportTrimestriel1 from './composants/ComposantsAdmin/ComposantsGestionRapportsTrimestriels/GestoinRapportTrimestriel1.vue';
@@ -26,11 +27,14 @@ import GestoinRapportTrimestriel4 from './composants/ComposantsAdmin/ComposantsG
 import SelectRapportTrimestriel from './composants/ComposantsAdmin/ComposantsGestionRapportsTrimestriels/SelectRapportTrimestriel.vue';
 import SelectComponent from './composants/ComposantsAdmin/ComposantsGestionActivites/SelectComponent.vue';
 import GestionActiviteHortProgramme from './composants/ComposantsAdmin/ComposantsGestionActivites/GestionActiviteHortProgramme.vue';
+import GestionAudits from './composants/ComposantsAdmin/ComposantsGestionAudits/GestionAudits.vue';
+import DocumentationUtilisateur from './composants/ComposantsAdmin/ComposantsDeBase/DocumentationUtilisateur.vue';
+
 const routes = [
-  
+
   {
     path: '/admin',
-    name:' Admin',
+    name: ' Admin',
     component: Admin,
     redirect: '/adminstat', // Redirection automatique
     children: [
@@ -42,89 +46,95 @@ const routes = [
   },
   {
     path: '/activite-hort-programme',
-    name:'GestionActiviteHortProgramme',
+    name: 'GestionActiviteHortProgramme',
     component: GestionActiviteHortProgramme,
     meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service'] }
-    
+
   },
   {
     path: '/contributeursProjet',
-    name:' ContributeursProjet',
-    component: ContributeursProjet ,
-    
+    name: ' ContributeursProjet',
+    component: ContributeursProjet,
+
   },
- 
+
   {
     path: '/select-component',
-    name:'SelectComponent',
-   component: SelectComponent,
-    
+    name: 'SelectComponent',
+    component: SelectComponent,
+
   },
   {
     path: '/select-rapport',
-    name:'SelectRapportTrimestriel',
-    component:SelectRapportTrimestriel,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
+    name: 'SelectRapportTrimestriel',
+    component: SelectRapportTrimestriel,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service', 'Ordonnateur'] }
   },
   {
     path: '/rapport',
-    name:'GestoinRapport',
+    name: 'GestoinRapport',
     component: GestoinRapport,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service', 'Ordonnateur'] }
   },
   {
     path: '/rapport-structure',
-    name:'GestoinRapportStructure',
+    name: 'GestoinRapportStructure',
     component: GestoinRapportStructure,
   },
 
   {
     path: '/rapports-trimestriels',
-    name:'GestoinRapportTrimestriel1',
-    component:GestoinRapportTrimestriel1,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
+    name: 'GestoinRapportTrimestriel1',
+    component: GestoinRapportTrimestriel1,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service', 'Ordonnateur'] }
   },
   {
     path: '/rapports-trimestriels',
-    name:'GestoinRapportTrimestriel2',
-    component:GestoinRapportTrimestriel2,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
+    name: 'GestoinRapportTrimestriel2',
+    component: GestoinRapportTrimestriel2,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service', 'Ordonnateur'] }
   },
   {
     path: '/rapports-trimestriels',
-    name:'GestoinRapportTrimestriel3',
-    component:GestoinRapportTrimestriel3,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
+    name: 'GestoinRapportTrimestriel3',
+    component: GestoinRapportTrimestriel3,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service', 'Ordonnateur'] }
   },
   {
     path: '/rapports-trimestriels',
-    name:'GestoinRapportTrimestriel4',
-    component:GestoinRapportTrimestriel4,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
+    name: 'GestoinRapportTrimestriel4',
+    component: GestoinRapportTrimestriel4,
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service', 'Ordonnateur'] }
   },
   {
     path: '/statistiques',
-    name:'GestionDesStatistiques',
-    component: GestionDesStatistiques,
+    name: 'GestionMatriceDactivite',
+    component: GestionMatriceDactivite,
   },
   {
     path: '/adminstat',
     name: 'AdminStat',
     component: AdminStat,
-    
+
   },
- 
+
   {
     path: '/structures',
     name: 'GestionStructures',
     component: GestionStructures,
     meta: { requiresAuth: true, role: 'Administrateur_DSI' }
   },
-  
+
   {
     path: '/utilisateurs',
     name: 'GestionUtilisateurs',
     component: GestionUtilisateurs,
+    meta: { requiresAuth: true, role: 'Administrateur_DSI' }
+  },
+  {
+    path: '/audits',
+    name: 'GestionAudits',
+    component: GestionAudits,
     meta: { requiresAuth: true, role: 'Administrateur_DSI' }
   },
   {
@@ -143,7 +153,7 @@ const routes = [
     path: '/programmes-activites',
     name: 'GestionProgrammesActivites',
     component: GestionProgrammesActivites,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service', 'Ordonnateur'] }
   },
   {
     path: '/programmes-activites-structure',
@@ -151,12 +161,12 @@ const routes = [
     component: GestionProgrammesActivitesStructure,
   },
   {
-    path: '/programmes-activites-historique/:id',
+    path: '/programmes-activites-historique/:id?',
     name: 'GestionProgrammesActivitesHistorique',
     component: GestionProgrammesActivitesHistorique,
-    meta: { requiresAuth: true, role: 'Administrateur' }
+    meta: { requiresAuth: true, role: ['Administrateur', 'Point-Focale', 'Responsable-de-structure', 'Chef-de-service', 'Ordonnateur', 'Planificateur'] }
   },
-  
+
   {
     path: '/sessions-activites/:id?',
     name: 'GestionSessionsActivites',
@@ -183,7 +193,7 @@ const routes = [
     path: '/canevas-activites',
     name: 'GestionCanevasActivites',
     component: GestionCanevasActivites,
-   
+
   },
   {
     path: '/confirmation-activites',
@@ -196,7 +206,12 @@ const routes = [
     name: 'GestionProgrammesActivites',
     component: GestionProgrammesActivites,
     props: true,
-    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service','Ordonnateur'] }
+    meta: { requiresAuth: true, role: ['Administrateur', 'Chef-de-service', 'Ordonnateur'] }
+  },
+  {
+    path: '/documentation',
+    name: 'DocumentationUtilisateur',
+    component: DocumentationUtilisateur,
   },
 ];
 
@@ -205,5 +220,31 @@ const router = createRouter({
   routes,
 });
 
+router.beforeEach(async (to, from, next) => {
+  if (to.meta.requiresAuth) {
+    try {
+      const response = await axios.get('/api/user-info');
+      const user = response.data;
+      
+      if (to.meta.role) {
+        const allowedRoles = Array.isArray(to.meta.role) ? to.meta.role : [to.meta.role];
+        if (!allowedRoles.includes(user.role)) {
+          // Si le rôle n'est pas autorisé, rediriger vers adminstat (tableau de bord)
+          return next('/adminstat');
+        }
+      }
+      next();
+    } catch (error) {
+      // Non authentifié
+      if (to.path !== '/login') {
+        return next('/login');
+      } else {
+        next();
+      }
+    }
+  } else {
+    next();
+  }
+});
 
 export default router;

@@ -47,7 +47,6 @@
                 required
               >
                 <option value="" disabled>-- Sélectionner un objectif --</option>
-                <option value=""> Aucun objectif</option>
                 <option 
                   v-for="objectif in ObjectifStrategique" 
                   :key="objectif.id" 
@@ -73,7 +72,6 @@
                 required
               >
                 <option value="" disabled>-- Sélectionner un effet --</option>
-                <option value=""> Aucun effet</option>
                 <option 
                   v-for="effet in effetAttendus" 
                   :key="effet.id" 
@@ -145,42 +143,46 @@
               />
             </div>
 
-            <!-- Partenaire -->
-            <div>
-              <label 
-                for="partenaire" 
-                class="block text-sm sm:text-base text-gray-700 font-medium mb-2"
-              >
-                Partenaire
-              </label>
-              <input 
-                v-model="formactivite.partenaire" 
-                id="partenaire" 
-                type="text" 
-                placeholder ="veillez entrer le nom du partenaire"
-                class="w-full  sm:p-2 border border-gray-300 rounded"
-              />
-            </div>
-
-            <!-- Montant Partenaire -->
-            <div>
-            <label 
-              for="financePartenaire" 
-              class="block text-sm sm:text-base text-gray-700 font-medium mb-2"
-            >
-              Partenaire : Montant
-            </label>
-            <input 
-              v-if="formactivite.partenaire"
-              :value="formattedFinancePartenaire" 
-              @input="onInputFinancePartenaire($event.target.value)"
-              placeholder="veillez entrer le montant financé par le partenaire"
-              id="financePartenaire" 
-              type="text"
-              class="w-full sm:p-2 border border-gray-300 rounded"
-              required
-            />
           </div>
+
+          <!-- Partenaires (liste dynamique) -->
+          <div class="mt-2">
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-sm sm:text-base text-gray-700 font-medium">Partenaires</label>
+              <button 
+                @click.prevent="ajouterPartenaire" 
+                type="button" 
+                class="text-xs border border-green-500 bg-green-500 text-white px-2 py-0.5 rounded hover:bg-green-700"
+              >
+                <i class="fas fa-plus"></i> Ajouter
+              </button>
+            </div>
+            <div 
+              v-for="(p, index) in partenaires" 
+              :key="index" 
+              class="grid grid-cols-[1fr_1fr_auto] gap-2 mb-1 items-center"
+            >
+              <input 
+                v-model="p.nom" 
+                type="text" 
+                placeholder="Nom du partenaire"
+                class="w-full sm:p-2 border border-gray-300 rounded text-sm"
+              />
+              <input 
+                :value="formatMontant(p.montant)" 
+                @input="onInputPartenaireMontant(index, $event.target.value)"
+                type="text" 
+                placeholder="Montant"
+                class="w-full sm:p-2 border border-gray-300 rounded text-sm"
+              />
+              <button 
+                @click.prevent="supprimerPartenaire(index)" 
+                type="button" 
+                class="text-red-500 hover:text-red-700"
+              >
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
           </div>
         </fieldset>
       </div>
@@ -189,28 +191,33 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <!-- Structure -->
         <fieldset class="border border-gray-300 px-4 py-1 rounded">
-          <legend class="text-base sm:text-lg font-bold px-2">Structure</legend>
-          <select 
-            v-model="formactivite.structure_id" 
-            id="structure" 
-            class="w-full  sm:p-2 border border-gray-300 rounded"
-            required
-          >
-            <option :value="userStructure?.id">
-              {{ userStructure?.sigle }}
-            </option>
-            <option 
-              v-if="isAdmin" 
-              v-for="structure in structures" 
-              :key="structure.id" 
-              :value="structure.id"
-            >
-              {{ structure.sigle }}
-            </option>
-            <option v-else :value="userStructure?.id">
-              {{ userStructure?.sigle }}
-            </option>
-          </select>
+          <legend class="text-base sm:text-lg font-bold px-2">Structures Partenaires</legend>
+          <div class="flex flex-col gap-2">
+            <input 
+              v-model="rechercheStructure" 
+              type="text" 
+              placeholder="Rechercher une structure..." 
+              class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400"
+            />
+            <div class="h-32 overflow-y-auto border border-gray-200 rounded p-2 bg-gray-50">
+              <label 
+                v-for="structure in structuresFiltrees" 
+                :key="structure.id" 
+                class="flex items-center space-x-2 mb-1 cursor-pointer hover:bg-gray-100 p-1 rounded"
+              >
+                <input 
+                  type="checkbox" 
+                  :value="structure.id" 
+                  v-model="formactivite.structures_partenaires_ids"
+                  class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-400 rounded"
+                />
+                <span class="text-sm font-medium text-gray-700">{{ structure.sigle }}</span>
+              </label>
+              <div v-if="structuresFiltrees.length === 0" class="text-xs text-gray-500 italic p-1">
+                Aucune structure trouvée.
+              </div>
+            </div>
+          </div>
         </fieldset>
 
         <!-- Périodes -->
@@ -272,9 +279,10 @@
         </div>
         <button 
           @click.prevent="ajouterIndicateur" 
-          class="w-full sm:w-auto border-2 border-green-500 bg-yellow-500 text-white px-4 py-1 rounded-lg hover:bg-yellow-700"
+          type="button"
+          class="text-xs border border-green-500 bg-green-500 text-white px-2 py-0.5 rounded hover:bg-green-700"
         >
-          <i class="fas fa-plus"></i> Ajouter un indicateur
+          <i class="fas fa-plus"></i> Ajouter
         </button>
       </fieldset>
       <div class="flex justify-between items-center mb-4">
@@ -293,9 +301,10 @@
         <div class="text-end">
           <button 
             type="submit" 
-            class="px-4 mt-2 sm:px-6 sm:py-1 border-2 border-green-500 bg-green-500 text-white rounded-lg hover:bg-green-700"
+            :disabled="loading"
+            class="px-4 mt-2 sm:px-6 sm:py-1 border-2 border-green-500 bg-green-500 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Enregistrer
+            {{ loading ? 'Enregistrement...' : 'Enregistrer' }}
           </button>
         </div>
     </div>
@@ -313,25 +322,27 @@ export default {
     return {
       alertMessage: '',
       isSuccess: false,
+      loading: false,
       userStructure: null, // La structure de l'utilisateur connecté
       isAdmin: false, // Statut de l'utilisateur connecté
+      rechercheStructure: '',
+      structures: [],
       ObjectifStrategique: [],
       effetAttendus: [],
       formactivite: {
         objectif_strategique_id: 0,
         effets_attendus_id:0,
-        structure_id: 0,
+        structures_partenaires_ids: [],
         libelle: '',
         etat:'UJKZ',
         finance_etat: '',
-        partenaire: '',
         hort_progamme: 0,
-        finance_partenaire: '',
         trimestre_1: 0,
         trimestre_2: 0,
         trimestre_3: 0,
         trimestre_4: 0,
       },
+      partenaires: [],
       Indicateur: [{ indicateur: '', unite: '', reference: '', cible: '' }],
       trimestres: [
         { label: 'Ttrimestre 1', model: 'trimestre_1' },
@@ -348,18 +359,26 @@ export default {
     };
   },
   computed: {
+    structuresFiltrees() {
+      if (!this.rechercheStructure) {
+        return this.structures;
+      }
+      const terme = this.rechercheStructure.toLowerCase();
+      return this.structures.filter(s => 
+        (s.sigle && s.sigle.toLowerCase().includes(terme)) || 
+        (s.libelle_structure && s.libelle_structure.toLowerCase().includes(terme))
+      );
+    },
     formattedFinanceEtat() {
       if (!this.formactivite.finance_etat) return ''
-      // Format avec espace tous les 3 chiffres, en partant de la droite
       return this.formactivite.finance_etat.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-    },
-    formattedFinancePartenaire() {
-      if (!this.formactivite.finance_partenaire) return ''
-      // Format avec espace tous les 3 chiffres, en partant de la droite
-      return this.formactivite.finance_partenaire.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
     }
   },
   methods: {
+    formatMontant(value) {
+      if (!value) return ''
+      return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+    },
 
     onInputFinanceEtat(value) {
       const numericValue = value.replace(/\s+/g, '')
@@ -367,11 +386,17 @@ export default {
         this.formactivite.finance_etat = numericValue
       }
     },
-    onInputFinancePartenaire(value) {
+    onInputPartenaireMontant(index, value) {
       const numericValue = value.replace(/\s+/g, '')
       if (/^\d*$/.test(numericValue)) {
-        this.formactivite.finance_partenaire = numericValue
+        this.partenaires[index].montant = numericValue
       }
+    },
+    ajouterPartenaire() {
+      this.partenaires.push({ nom: '', montant: '' });
+    },
+    supprimerPartenaire(index) {
+      this.partenaires.splice(index, 1);
     },
 
     async fetchObjectifs() {
@@ -405,11 +430,7 @@ export default {
     },
     async fetchStructures() {
       try {
-        const response = await axios.get('/api/structures', {
-          headers: {
-            'X-CSRF-TOKEN': this.csrfToken
-          }
-        });
+        const response = await axios.get('/api/structures');
         this.structures = response.data;
       } catch (error) {
         console.error('Erreur lors de la récupération des structures:', error);
@@ -418,8 +439,18 @@ export default {
 
     // Soumettre le formulaire avec formactivite et Indicateur
     async soumettreFormulaire() {
+      if (this.loading) return;
+      this.loading = true;
+      // Filtrer les partenaires vides et inclure dans formactivite
+      const partenairesFiltered = this.partenaires.filter(p => p.nom && p.nom.trim() !== '');
       const dataToSend = {
-        formactivite: this.formactivite,
+        formactivite: {
+          ...this.formactivite,
+          partenaires_list: partenairesFiltered.length > 0 ? partenairesFiltered : null,
+          // Calculer le total partenaire pour rétro-compatibilité
+          partenaire: partenairesFiltered.map(p => p.nom).join(', ') || null,
+          finance_partenaire: partenairesFiltered.reduce((sum, p) => sum + (Number(p.montant) || 0), 0) || null,
+        },
         Indicateur: this.Indicateur
       };
 
@@ -429,12 +460,15 @@ export default {
         this.isSuccess = true;
         this.formactivite = {etat:'UJKZ',hort_progamme: 0}; // Réinitialiser le formulaire
         this.Indicateur = [{ indicateur: '', unite: '', reference: '', cible: '' }];
+        this.partenaires = [];
         this.$emit('soumettreFormulaire');
         this.showAlert('Activité enregistrer avec succès', true);
       } catch (error) {
         console.error('Erreur lors de l\'enregistrement de l\'activité:', error);
         this.showAlert('Une erreur s\'est produite lors de l\'enregistrement de l\'activité.', false);
         this.isSuccess = false;
+      } finally {
+        this.loading = false;
       }
     },
     async fetchSUserInfo() {

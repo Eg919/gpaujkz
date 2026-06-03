@@ -101,6 +101,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
   name: 'FormulaireCreationPlanStrategique',
   data() {
@@ -119,34 +120,20 @@ export default {
   methods: {
     async createPlan() {
       this.errors = {};
-
-      // Validation côté client
       if (!this.form.titre) this.errors.titre = 'Le titre est requis.';
       if (this.form.debut > this.form.fin) {
         this.errors.fin = 'La date de fin doit être postérieure à la date de début.';
         return;
       }
-
       this.isSubmitting = true;
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
       try {
-        const response = await fetch('/api/plans-strategiques', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-          },
-          body: JSON.stringify(this.form),
-        });
-
-        if (!response.ok) throw new Error('Erreur serveur');
+        await axios.post('/api/plans-strategiques', this.form);
         this.$emit('createPlan');
         this.showAlert('Plan stratégique créé avec succès!', true);
         this.fermerFormulaire();
       } catch (error) {
         console.error(error);
-        this.showAlert('Une erreur est survenue, veuillez réessayer.', true);
+        this.showAlert('Une erreur est survenue, veuillez réessayer.', false);
       } finally {
         this.isSubmitting = false;
       }
