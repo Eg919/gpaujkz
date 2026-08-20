@@ -275,10 +275,7 @@ export default {
       const activite = this.activites.find(a => a.id === this.activiteIdSelectionne);
       if (!activite) return false;
       
-      // Si la session est clôturée, personne ne peut modifier
-      if (activite.etat_session === 'Clôturé') return false;
-
-      // Sinon, on autorise l'Admin ou le Chef de service
+      // L'Admin et le Chef de service peuvent modifier toutes les activités.
       return this.isAdmin || this.isChefService;
     }
   },

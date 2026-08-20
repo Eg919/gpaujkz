@@ -70,7 +70,7 @@
                 <p class="text-sm text-gray-600 truncate">{{ activite.structure_sigle }}</p>
                 <p class="font-bold truncate">{{ activite.libelle || 'Libellé indisponible' }}</p>
                 <!-- Affichage conditionnel -->
-                <div v-if="activite.etat_session === 'Ouvert'" class="mt-2">
+                <div v-if="activite.etat_session === 'Ouvert' || ((isAdmin || isChefService) && activite.etat_slection === 'Validé' && activite.confirmation_presi == 1)" class="mt-2">
                   <select
                     v-model="activite.etat_slection"
                     class="border border-gray-300 rounded px-4 py-2 mt-2"
@@ -168,7 +168,7 @@
                 <p class="text-sm text-gray-600 truncate">{{ activite.structure_sigle }}</p>
                 <p class="font-bold truncate">{{ activite.libelle || 'Libellé indisponible' }}</p>
                 <!-- Affichage conditionnel -->
-                <div v-if="activite.etat_session === 'Ouvert'" class="mt-2 flex items-center space-x-4">
+                <div v-if="activite.etat_session === 'Ouvert' || ((isAdmin || isChefService) && activite.etat_slection === 'Validé' && activite.confirmation_presi == 1)" class="mt-2 flex items-center space-x-4">
                   <select
                     v-model="activite.etat_slection"
                     class="border border-gray-300 rounded px-4 py-2 mt-2"
@@ -443,10 +443,21 @@ export default {
     },
     async updateEtatActiviteSelection(activite) {
       if (!activite || !activite.id) return;
+      const payload = {
+        etat_slection: activite.etat_slection,
+      };
+
+      if (activite.etat_slection === 'Rejeté') {
+        const motifRejet = window.prompt('Motif du rejet :');
+        if (!motifRejet || !motifRejet.trim()) {
+          await this.fetchActivites(this.sessionsId);
+          return;
+        }
+        payload.motif_rejet = motifRejet.trim();
+      }
+
       try {
-        await axios.put(`/api/activites/${activite.id}`, {
-          etat_slection: activite.etat_slection,
-        });
+        await axios.put(`/api/activites/${activite.id}`, payload);
         this.showAlert('État mis à jour avec succès.', true);
       } catch (error) {
         console.error("Erreur lors de la mise à jour de l'état :", error);

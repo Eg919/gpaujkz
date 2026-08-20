@@ -817,7 +817,10 @@ public function getActivitesBySessionStructure(Request $request)
     public function updateEtatActiviteSelection(Request $request, $id)
     {
         try {
-            $this->verifySessionNotClosed($id);
+            $user = Auth::user();
+            if (!$user || !in_array($user->role, ['Administrateur', 'Chef-de-service'])) {
+                $this->verifySessionNotClosed($id);
+            }
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403);
         }
@@ -836,6 +839,7 @@ public function getActivitesBySessionStructure(Request $request)
                 'motif_rejet' => 'required|string|max:500',
             ]);
             $activite->motif_rejet = $request->input('motif_rejet');
+            $activite->confirmation_presi = 0;
         } else {
             $activite->motif_rejet = null;
         }
@@ -895,7 +899,9 @@ public function getActivitesBySessionStructure(Request $request)
     try {
         \Log::info('Recherche de l\'activité à modifier.');
         $activite = Activite::findOrFail($id);
-        $this->verifySessionNotClosed($id);
+        if (!in_array($user->role, ['Administrateur', 'Chef-de-service'])) {
+            $this->verifySessionNotClosed($id);
+        }
 
         \Log::info('Mise à jour des données de l\'activité.');
         $activite->update([
@@ -968,7 +974,9 @@ public function updateStructuresPartenaires(Request $request, $id)
     ]);
 
     try {
-        $this->verifySessionNotClosed($id);
+        if (!in_array($user->role, ['Administrateur', 'Chef-de-service'])) {
+            $this->verifySessionNotClosed($id);
+        }
 
         $incomingIds = collect($validated['structures_partenaires_ids'] ?? [])
             ->map(fn ($value) => (int) $value)
