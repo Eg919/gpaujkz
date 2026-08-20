@@ -438,6 +438,7 @@ public function mettreAJourEtatFinancier(Request $request, $id)
             'libelle' => $activite->libelle,
             'etat_activite' => $activite->etat_activite,
             'sessions_id' => $activite->sessions_id,
+            'structure_id' => $activite->structure_id,
             'structure_sigle' => $activite->structure_sigle, // Utilise l'accésseur du créateur
             'etat_session' => $session->etat, // Ajouter l'état de la session
             'reconduir'=>$activite->reconduir,
@@ -515,6 +516,7 @@ public function mettreAJourEtatFinancier(Request $request, $id)
             'libelle' => $activite->libelle,
             'etat_activite' => $activite->etat_activite,
             'sessions_id' => $activite->sessions_id,
+            'structure_id' => $activite->structure_id,
             'structure_sigle' => $activite->structure_sigle, // Utilise l'accésseur du créateur
             'etat_session' => $session->etat, // Ajouter l'état de la session
             'reconduir'=>$activite->reconduir,
@@ -855,7 +857,11 @@ public function getActivitesBySessionStructure(Request $request)
     // Vérifier si l'activité a déjà été soumise
     $activite = Activite::findOrFail($id);
     $user = Auth::user();
-    if ($activite->etat_slection === 'Validé' && $activite->confirmation_presi == 1 && !($user->role === 'Administrateur' || $user->role === 'Chef-de-service')) {
+    $isPrivilegedRole = in_array($user->role, ['Administrateur', 'Chef-de-service']);
+    $isStructureManager = in_array($user->role, ['Point-Focale', 'Responsable-de-structure'])
+        && (int) $activite->structure_id === (int) $user->structure_id;
+
+    if ($activite->etat_slection === 'Validé' && $activite->confirmation_presi == 1 && !$isPrivilegedRole && !$isStructureManager) {
         return response()->json([
             'message' => 'Cette activité a déjà été validée et confirmée, elle ne peut plus être modifiée.',
         ], 403);
@@ -899,7 +905,7 @@ public function getActivitesBySessionStructure(Request $request)
     try {
         \Log::info('Recherche de l\'activité à modifier.');
         $activite = Activite::findOrFail($id);
-        if (!in_array($user->role, ['Administrateur', 'Chef-de-service'])) {
+        if (!$isPrivilegedRole && !$isStructureManager) {
             $this->verifySessionNotClosed($id);
         }
 

@@ -255,6 +255,7 @@ export default {
       sessionsId: null,
       isAdmin: false,
       isChefService: false,
+      userInfo: null,
       refreshCount: 0,
       isMobile: false,
       actionLoading: false,
@@ -275,8 +276,10 @@ export default {
       const activite = this.activites.find(a => a.id === this.activiteIdSelectionne);
       if (!activite) return false;
       
-      // L'Admin et le Chef de service peuvent modifier toutes les activités.
-      return this.isAdmin || this.isChefService;
+      const isStructureManager = ['Point-Focale', 'Responsable-de-structure'].includes(this.userInfo?.role)
+        && Number(activite.structure_id) === Number(this.userInfo?.structure_id);
+
+      return this.isAdmin || this.isChefService || isStructureManager;
     }
   },
   methods: {
@@ -328,6 +331,7 @@ export default {
       try {
         const response = await axios.get('/api/user-info');
         const user = response.data;
+        this.userInfo = user;
         this.isAdmin = user.role === 'Administrateur';
         this.isChefService = user.role === 'Chef-de-service';
       } catch (error) {
