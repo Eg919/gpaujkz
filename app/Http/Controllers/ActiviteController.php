@@ -23,15 +23,17 @@ class ActiviteController extends Controller
     {
         $activite = Activite::find($activiteId);
         if (!$activite) return;
-
-        $session = SessionActivite::find($activite->sessions_id);
-        if ($session && $session->etat === 'Clôturé') {
-            abort(403, "Cette session est clôturée. Toute modification est interdite.");
-        }
         
         $user = Auth::user();
-        if ($user && !in_array($user->role, ['Administrateur']) && $activite->structure_id !== $user->structure_id) {
-            abort(403, "Accès non autorisé : cette activité n'appartient pas à votre structure.");
+        if ($user && !in_array($user->role, ['Administrateur'])) {
+            $isOwnerStructure = (int) $activite->structure_id === (int) $user->structure_id;
+            $isPartnerStructure = $activite->structuresPartenaires()
+                ->where('structure_id', $user->structure_id)
+                ->exists();
+
+            if (!$isOwnerStructure && !$isPartnerStructure) {
+                abort(403, "Accès non autorisé : cette activité n'appartient pas à votre structure.");
+            }
         }
     }
 
@@ -937,6 +939,61 @@ public function getActivitesBySessionStructure(Request $request)
         ]);
         return response()->json([
             'message' => 'Une erreur est survenue lors de la mise à jour.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
+
+public function updateStructuresPartenaires(Request $request, $id)
+{
+    $activite = Activite::findOrFail($id);
+    $user = Auth::user();
+
+    if (!$user) {
+        return response()->json(['message' => 'Utilisateur non authentifié.'], 401);
+    }
+
+    $isAdminLike = in_array($user->role, ['Administrateur', 'Chef-de-service']);
+    $isOwnerStructure = (int) $activite->structure_id === (int) $user->structure_id;
+
+    if (!$isAdminLike && !$isOwnerStructure) {
+        return response()->json([
+            'message' => 'Accès non autorisé : seule la structure propriétaire peut modifier les structures partenaires.',
+        ], 403);
+    }
+
+    $validated = $request->validate([
+        'structures_partenaires_ids' => 'nullable|array',
+        'structures_partenaires_ids.*' => 'exists:structures,id',
+    ]);
+
+    try {
+        $this->verifySessionNotClosed($id);
+
+        $incomingIds = collect($validated['structures_partenaires_ids'] ?? [])
+            ->map(fn ($value) => (int) $value)
+            ->unique()
+            ->filter(fn ($value) => $value !== (int) $activite->structure_id)
+            ->values()
+            ->toArray();
+
+        $activite->structuresPartenaires()->sync($incomingIds);
+        $activite->load('structuresPartenaires');
+
+        return response()->json([
+            'message' => 'Structures partenaires mises à jour avec succès.',
+            'structures_partenaires' => $activite->structuresPartenaires,
+        ], 200);
+    } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+        throw $e;
+    } catch (\Exception $e) {
+        Log::error('Erreur mise à jour structures partenaires.', [
+            'activite_id' => $id,
+            'error' => $e->getMessage(),
+        ]);
+
+        return response()->json([
+            'message' => 'Une erreur est survenue lors de la mise à jour des structures partenaires.',
             'error' => $e->getMessage(),
         ], 500);
     }

@@ -7,9 +7,9 @@
     />
     <!-- Header avec bouton d'export et Filtres -->
     <div class="print:hidden flex justify-between items-center w-full max-w-[99%] mx-auto mb-4 px-4 sticky z-20 bg-white/80 backdrop-blur-md py-4 rounded-xl border border-slate-100 shadow-sm transition-all hover:bg-white text-emerald-900" :class="standalone ? 'top-12' : 'top-0'">
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-4 flex-wrap">
         <!-- Sélecteur de Structure Premium -->
-        <div class="relative group min-w-[320px]">
+        <div class="relative group min-w-[280px]">
           <label class="absolute -top-2 left-3 bg-white px-1 text-[10px] font-black text-indigo-500 uppercase tracking-widest z-10 transition-all group-focus-within:text-indigo-600">Filtrer par Structure</label>
           <select 
             v-model="selectedStructureId"
@@ -23,6 +23,24 @@
           </select>
           <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
             <i class="fas fa-filter text-[10px]"></i>
+          </div>
+        </div>
+
+        <!-- Sélecteur de Trimestre -->
+        <div class="relative group min-w-[180px]">
+          <label class="absolute -top-2 left-3 bg-white px-1 text-[10px] font-black text-indigo-500 uppercase tracking-widest z-10 transition-all group-focus-within:text-indigo-600">Filtrer par Trimestre</label>
+          <select
+            v-model="selectedTrimestre"
+            class="w-full bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all appearance-none cursor-pointer"
+          >
+            <option value="">Tous les trimestres</option>
+            <option value="1">T1</option>
+            <option value="2">T2</option>
+            <option value="3">T3</option>
+            <option value="4">T4</option>
+          </select>
+          <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+            <i class="fas fa-calendar-alt text-[10px]"></i>
           </div>
         </div>
       </div>
@@ -48,7 +66,7 @@
       <!-- En-tête officiel (UKZ) -->
       <!-- Header du Tableau Sobre (Sync avec Rapport) -->
       <div class="bg-white p-8 flex flex-col items-center border-b border-slate-100">
-        <h1 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">IV. MATRICE DE PROGRAMMATION DES ACTIVITES {{ sessionsAnne }} DE L'UJKZ</h1>
+        <h1 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">MATRICE DE PROGRAMMATION DES ACTIVITES {{ sessionsAnne }} DE L'UJKZ</h1>
         <div class="w-24 h-1 bg-amber-500 rounded-full mb-4"></div>
       </div>
 
@@ -316,6 +334,7 @@ export default {
       sessionsAnne: 0,
       structures: [],
       selectedStructureId: "",
+      selectedTrimestre: "",
       currentUser: null,
       showSignatureModal: false,
       signatureData: null,
@@ -329,19 +348,28 @@ export default {
         return fullAccessRoles.includes(this.currentUser.role);
     },
     filteredAxes() {
-      if (!this.selectedStructureId) return this.axes;
-      
+      if (!this.selectedStructureId && !this.selectedTrimestre) return this.axes;
+
       return this.axes.map(axe => {
         const filteredObjectifs = axe.objectifs.map(obj => {
           const filteredEffets = obj.effets.map(eff => {
-              const filteredActivites = eff.activites.filter(act => 
-                act.structure_id == this.selectedStructureId || 
-                (act.structure && act.structure.id == this.selectedStructureId)
-              );
+              const filteredActivites = eff.activites.filter(act => {
+                const matchesStructure = !this.selectedStructureId ||
+                  act.structure_id == this.selectedStructureId ||
+                  (act.structure && act.structure.id == this.selectedStructureId);
+
+                const matchesTrimestre = !this.selectedTrimestre ||
+                  Boolean(act[`trimestre_${this.selectedTrimestre}`]);
+
+                return matchesStructure && matchesTrimestre;
+              });
+
               return { ...eff, activites: filteredActivites };
             }).filter(eff => eff.activites.length > 0);
+
           return { ...obj, effets: filteredEffets };
         }).filter(obj => obj.effets.length > 0);
+
         return { ...axe, objectifs: filteredObjectifs };
       }).filter(axe => axe.objectifs.length > 0);
     },
@@ -529,66 +557,190 @@ export default {
       return this.filteredAxes.reduce((sum, axe) => sum + this.calculerTotalAxePartenaire(axe), 0);
     },
     async exportToExcel() {
-       try {
+      try {
+        const normalizeAmount = (value) => {
+          const parsed = Number(value);
+          return Number.isFinite(parsed) ? parsed : 0;
+        };
+
+        const indicatorsToText = (indicateurs, fieldPrimary, fieldFallback) => {
+          if (!Array.isArray(indicateurs) || indicateurs.length === 0) {
+            return "";
+          }
+
+          return indicateurs
+            .map((ind) => ind?.[fieldPrimary] || ind?.[fieldFallback] || "")
+            .filter((val) => val !== "")
+            .join(" | ");
+        };
+
+        const partenairesToText = (details) => {
+          if (!Array.isArray(details) || details.length === 0) {
+            return "";
+          }
+
+          return details
+            .map((p) => {
+              const nom = p?.nom || "Partenaire";
+              const montant = normalizeAmount(p?.montant);
+              return `${nom} (${this.formatNumber(montant)})`;
+            })
+            .join(" ; ");
+        };
+
         const data = [
-            [`MATRICE DE PROGRAMMATION DES ACTIVITÉS - SESSION ${this.sessionsAnne}`],
-            [`Généré le ${new Date().toLocaleDateString('fr-FR')}`],
-            [],
-            ["N°", "Objectifs/Activités", "Indicateur", "Unité", "Référence", "Cible", "Coût Etat", "Coût Partenaire", "T1", "T2", "T3", "T4", "Structure", "Fin. Etat", "Fin. Partenaires"]
+          [`MATRICE DE PROGRAMMATION DES ACTIVITES - SESSION ${this.sessionsAnne || "N/A"}`],
+          ["Cadre programmatique du programme d'activites revise de l'UJKZ"],
+          [`Structure filtree: ${this.selectedStructureId || "Toutes les structures"}`],
+          [`Trimestre filtre: ${this.selectedTrimestre ? `T${this.selectedTrimestre}` : "Tous les trimestres"}`],
+          [`Genere le ${new Date().toLocaleDateString("fr-FR")}`],
+          [],
+          ["N°", "Objectifs/Activites", "Indicateur", "Unite", "Reference", "Cible", "Cout Etat", "Cout Partenaire", "T1", "T2", "T3", "T4", "Structure", "Fin. Etat", "Fin. Partenaires"]
         ];
 
         this.filteredAxes.forEach((axe, axeIdx) => {
-            data.push([`AXE ${axeIdx + 1}`, axe.libelle, "", "", "", "", this.calculerTotalAxeEtat(axe), this.calculerTotalAxePartenaire(axe)]);
-            axe.objectifs.forEach((obj, idx) => {
-                data.push([`OBJ ${axeIdx + 1}.${idx + 1}`, obj.libelle, "", "", "", "", this.calculerTotalObjectifEtat(obj), this.calculerTotalObjectifPartenaire(obj)]);
-                obj.effets.forEach((eff, effIdx) => {
-                    data.push([`${axeIdx + 1}.${idx + 1}.${effIdx + 1}`, eff.libelle, "", "", "", "", this.calculerTotalEffetEtat(eff), this.calculerTotalEffetPartenaire(eff)]);
-                    eff.activites.forEach((act, actIdx) => {
-                        const firstInd = (act.indicateurs || [])[0] || {};
-                        data.push([
-                            `${axeIdx + 1}.${idx + 1}.${effIdx + 1}.${actIdx + 1}`,
-                            act.libelle,
-                            firstInd.libelle_indicateur || firstInd.indicateur || "",
-                            firstInd.unite_indicateur || firstInd.unite || "",
-                            firstInd.reference_indicateur || firstInd.reference || "",
-                            firstInd.cible_indicateur || firstInd.cible || "",
-                            act.finance_etat,
-                            act.finance_partenaire,
-                            act.trimestre_1 ? "X" : "",
-                            act.trimestre_2 ? "X" : "",
-                            act.trimestre_3 ? "X" : "",
-                            act.trimestre_4 ? "X" : "",
-                            act.structure_sigle || "",
-                            act.finance_etat,
-                            (act.partenaires_details || []).map(p => `${p.nom} (${p.montant})`).join(', ')
-                        ]);
+          data.push([
+            `AXE ${axeIdx + 1}`,
+            axe.libelle || "",
+            "",
+            "",
+            "",
+            "",
+            normalizeAmount(this.calculerTotalAxeEtat(axe)),
+            normalizeAmount(this.calculerTotalAxePartenaire(axe)),
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]);
 
-                        // Si plusieurs indicateurs, ajouter des lignes supplémentaires
-                        if ((act.indicateurs || []).length > 1) {
-                          act.indicateurs.slice(1).forEach(ind => {
-                            data.push([
-                              "", "", 
-                              ind.libelle_indicateur || ind.indicateur || "",
-                              ind.unite_indicateur || ind.unite || "",
-                              ind.reference_indicateur || ind.reference || "",
-                              ind.cible_indicateur || ind.cible || "",
-                              "", "", "", "", "", "", "", "", ""
-                            ]);
-                          });
-                        }
-                    });
-                });
+          axe.objectifs.forEach((obj, idx) => {
+            data.push([
+              `OBJ ${axeIdx + 1}.${idx + 1}`,
+              obj.libelle || "",
+              "",
+              "",
+              "",
+              "",
+              normalizeAmount(this.calculerTotalObjectifEtat(obj)),
+              normalizeAmount(this.calculerTotalObjectifPartenaire(obj)),
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]);
+
+            obj.effets.forEach((eff, effIdx) => {
+              data.push([
+                `${axeIdx + 1}.${idx + 1}.${effIdx + 1}`,
+                eff.libelle || "",
+                "",
+                "",
+                "",
+                "",
+                normalizeAmount(this.calculerTotalEffetEtat(eff)),
+                normalizeAmount(this.calculerTotalEffetPartenaire(eff)),
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ]);
+
+              eff.activites.forEach((act, actIdx) => {
+                data.push([
+                  `${axeIdx + 1}.${idx + 1}.${effIdx + 1}.${actIdx + 1}`,
+                  act.libelle || "",
+                  indicatorsToText(act.indicateurs, "libelle_indicateur", "indicateur"),
+                  indicatorsToText(act.indicateurs, "unite_indicateur", "unite"),
+                  indicatorsToText(act.indicateurs, "reference_indicateur", "reference"),
+                  indicatorsToText(act.indicateurs, "cible_indicateur", "cible"),
+                  normalizeAmount(act.finance_etat),
+                  normalizeAmount(act.finance_partenaire),
+                  act.trimestre_1 ? "X" : "",
+                  act.trimestre_2 ? "X" : "",
+                  act.trimestre_3 ? "X" : "",
+                  act.trimestre_4 ? "X" : "",
+                  act.structure_sigle || "",
+                  normalizeAmount(act.finance_etat),
+                  partenairesToText(act.partenaires_details)
+                ]);
+              });
             });
+          });
         });
 
         data.push([]);
-        data.push(["", "TOTAL GÉNÉRAL (ETAT)", "", "", "", "", this.calculerSommeTotalEtat()]);
-        data.push(["", "TOTAL GÉNÉRAL (PARTENAIRES)", "", "", "", "", this.calculerSommeTotalPartenaire()]);
+        data.push([
+          "",
+          "TOTAL GENERAL",
+          "",
+          "",
+          "",
+          "",
+          normalizeAmount(this.calculerSommeTotalEtat()),
+          normalizeAmount(this.calculerSommeTotalPartenaire()),
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]);
 
         const ws = XLSX.utils.aoa_to_sheet(data);
+
+        ws["!cols"] = [
+          { wch: 10 },
+          { wch: 45 },
+          { wch: 35 },
+          { wch: 16 },
+          { wch: 16 },
+          { wch: 16 },
+          { wch: 16 },
+          { wch: 18 },
+          { wch: 6 },
+          { wch: 6 },
+          { wch: 6 },
+          { wch: 6 },
+          { wch: 14 },
+          { wch: 16 },
+          { wch: 42 }
+        ];
+
+        ws["!merges"] = [
+          XLSX.utils.decode_range("A1:O1"),
+          XLSX.utils.decode_range("A2:O2"),
+          XLSX.utils.decode_range("A3:O3"),
+          XLSX.utils.decode_range("A4:O4"),
+          XLSX.utils.decode_range("A5:O5")
+        ];
+
+        ws["!autofilter"] = { ref: `A7:O7` };
+
+        for (let rowIndex = 7; rowIndex <= data.length; rowIndex++) {
+          ["G", "H", "N"].forEach((col) => {
+            const address = `${col}${rowIndex}`;
+            const cell = ws[address];
+            if (cell && typeof cell.v === "number") {
+              cell.t = "n";
+              cell.z = "#,##0";
+            }
+          });
+        }
+
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Matrice");
-        XLSX.writeFile(wb, `Matrice_Activites_${this.sessionsAnne}.xlsx`);
+        XLSX.writeFile(wb, `Matrice_Activites_${this.sessionsAnne || "session"}.xlsx`);
       } catch (error) {
         console.error("Export error:", error);
       }

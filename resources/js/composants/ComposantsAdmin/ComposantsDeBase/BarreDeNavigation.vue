@@ -1,7 +1,7 @@
 <template>
   <div class="fixed top-0 left-0 right-0 h-14 flex justify-between items-center bg-green-700 px-4 sm:px-6 md:px-8 z-[1000] shadow-sm">
     <!-- Logo et Titre (Optionnel, ici on garde le menu) -->
-    <div class="flex items-center gap-4">
+    <div v-if="!navigationLocked" class="flex items-center gap-4">
       <!-- Liens directs pour d'autres sections -->
       <router-link
         v-if="isAdmin" 
@@ -198,7 +198,7 @@
     <div class="flex items-center">
       <!-- Icône Notifications -->
       <div
-        v-if="userInfo"
+        v-if="userInfo && !navigationLocked"
         class="relative text-white mr-4 sm:mr-6 md:mr-8 hover:text-yellow-500 cursor-pointer"
         title="Notifications"
         @click="toggleNotification"
@@ -277,9 +277,18 @@ export default {
       isResponsable: false,
       isAdminDSI: false,
       isPlanificateur: false,
+      mustChangePassword: false,
       userId:'',
       notificationsCount: 0,
     };
+  },
+  computed: {
+    isPasswordChangeRoute() {
+      return this.$route.path === '/changer-mot-de-passe';
+    },
+    navigationLocked() {
+      return this.isPasswordChangeRoute || this.mustChangePassword;
+    },
   },
   watch: {
     $route() {
@@ -298,6 +307,7 @@ export default {
       this.notificaionVisible = false;
     },
     toggleParametresMenu() {
+      if (this.navigationLocked) return;
       const willShow = !this.showParametresMenu;
       this.closeAllMenus();
       this.showParametresMenu = willShow;
@@ -308,6 +318,7 @@ export default {
       }
     },
     toggleActiviteMenu() {
+      if (this.navigationLocked) return;
       const willShow = !this.showActiviteMenu;
       this.closeAllMenus();
       this.showActiviteMenu = willShow;
@@ -318,6 +329,7 @@ export default {
       }
     },
     toggleSuiviMenu() {
+      if (this.navigationLocked) return;
       const willShow = !this.showSuiviMenu;
       this.closeAllMenus();
       this.showSuiviMenu = willShow;
@@ -334,6 +346,7 @@ export default {
       }
     },
     toggleNotification() {
+      if (this.navigationLocked) return;
       const willShow = !this.notificaionVisible;
       this.closeAllMenus();
       this.notificaionVisible = willShow;
@@ -382,6 +395,7 @@ export default {
       try {
         const response = await axios.get('/api/user-info');
         this.userInfo = response.data;
+        this.mustChangePassword = Boolean(this.userInfo.must_change_password);
         this.isAdmin = this.userInfo.role === 'Administrateur';
         this.isInvite = this.userInfo.role === 'Ordonnateur';
         this.isPointFocal = this.userInfo.role === 'Point-Focale';
@@ -401,6 +415,7 @@ export default {
         this.isResponsable = false;
         this.isAdminDSI = false;
         this.isPlanificateur = false;
+        this.mustChangePassword = false;
         this.userId = '';
         this.notificationsCount = 0;
       }

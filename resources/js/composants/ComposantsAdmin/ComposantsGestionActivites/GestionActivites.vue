@@ -103,7 +103,7 @@
                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Libellé de la tâche</label>
                     <div class="relative">
                       <input
-                        :disabled="isPlanningLocked || isInvite || isSession"
+                        :disabled="isPlanningLocked || isSession"
                         v-model="tache.libelle"
                         type="text"
                         placeholder="Qu'est-ce qui doit être fait ?"
@@ -117,7 +117,7 @@
                     <div class="w-1/2 sm:w-24">
                       <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Poids (%)</label>
                       <input
-                        :disabled="isPlanningLocked || isInvite || isSession"
+                        :disabled="isPlanningLocked || isSession"
                         v-model.number="tache.pourcentage_tache"
                         type="number"
                         class="w-full px-2 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-400 focus:bg-white text-center text-sm font-bold text-gray-700 disabled:opacity-70 disabled:cursor-not-allowed"
@@ -126,11 +126,11 @@
                     <div class="w-1/2 sm:w-24">
                       <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Exécution (%)</label>
                       <input
-                        :disabled="!isFollowUpEnabled || isInvite || isSession"
+                        :disabled="!isFollowUpEnabled || isSession"
                         v-model.number="tache.taux_execution_tache"
                         type="number"
                         class="w-full px-2 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-400 focus:bg-white text-center text-sm font-bold text-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                        :title="!isFollowUpEnabled ? 'Déverrouillé après validation et confirmation' : ''"
+                        :title="!isFollowUpEnabled ? 'Session clôturée' : ''"
                       />
                     </div>
                   </div>
@@ -145,15 +145,15 @@
                     >
                     <button
                       @click="$refs['file_' + tache.id][0].click()"
-                      :disabled="!isFollowUpEnabled || isInvite || isSession"
+                      :disabled="!isFollowUpEnabled || isSession"
                       class="p-2.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      :title="!isFollowUpEnabled ? 'Le suivi nécessite la validation et la confirmation' : 'Joindre un justificatif'"
+                      :title="!isFollowUpEnabled ? 'Session clôturée' : 'Joindre un justificatif'"
                     >
                       <i class="fas fa-paperclip"></i>
                     </button>
                     <button
                       @click="modifierTache(tache)"
-                        :disabled="(isPlanningLocked && !isFollowUpEnabled) || isInvite || isSession"
+                        :disabled="(isPlanningLocked && !isFollowUpEnabled) || isSession"
                         class="px-3 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-lg flex items-center gap-2 transition-all font-bold text-[10px] uppercase tracking-wider border border-emerald-100 hover:border-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <i class="fas fa-save"></i>
@@ -254,7 +254,7 @@
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">État Financier (FCFA)</label>
                 <div class="relative group">
                   <input
-                    :disabled="!isFollowUpEnabled || isInvite || isSession"
+                    :disabled="!isFollowUpEnabled || isSession"
                     :value="formatNombreAvecEspaces(activite.etat_financier)"
                     @input="onInputEtatFinancier($event.target.value)"
                     type="text"
@@ -266,14 +266,14 @@
               
               <button
                 @click="mettreAjourEtatFinancier"
-                :disabled="!isFollowUpEnabled || isInvite || isSession"
+                :disabled="!isFollowUpEnabled || isSession"
                 class="w-full py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 shadow-sm hover:shadow-md transition-all font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <i class="fas fa-sync-alt"></i>
                 Mettre à jour
               </button>
               <p v-if="!isFollowUpEnabled" class="text-[9px] text-rose-500 font-bold uppercase tracking-tighter text-center">
-                <i class="fas fa-info-circle"></i> Suivi financier bloqué (attente validation)
+                <i class="fas fa-info-circle"></i> Suivi financier bloqué (session clôturée)
               </p>
             </div>
 
@@ -282,7 +282,7 @@
               <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Observations de l'administration</label>
                 <textarea
-                  :disabled="!isFollowUpEnabled || isInvite || isSession"
+                  :disabled="!isFollowUpEnabled || isSession"
                   v-model="activite.observation"
                   rows="4"
                   placeholder="Notes, remarques ou instructions..."
@@ -292,7 +292,7 @@
 
               <button
                 @click="mettreAjourObservation"
-                :disabled="!isFollowUpEnabled || isInvite || isSession"
+                :disabled="!isFollowUpEnabled || isSession"
                 class="w-full py-3 bg-slate-800 text-white rounded-xl hover:bg-black shadow-sm transition-all font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <i class="fas fa-edit"></i>
@@ -499,12 +499,10 @@
       },
       // Nouvelles propriétés de contrôle de flux
       isPlanningLocked() {
-        return (this.activite.etat_slection === 'Validé' && this.activite.confirmation_presi == 1) || this.isSession;
+        return false;
       },
       isFollowUpEnabled() {
-        return this.activite.soumi && 
-               this.activite.etat_slection === 'Validé' && 
-               this.activite.confirmation_presi;
+        return true;
       },
     },
 
@@ -582,10 +580,9 @@
         const data = await response.json();
         this.activite = data.activite;
         this.indicateurs = data.indicateurs;
-        
-        if (this.userInfo && this.userInfo.structure_id !== this.activite.structure_id) {
-            this.isInvite = true;
-        }
+
+        // Réévalue le mode lecture seule après chargement de l'activité.
+        this.updateInviteStatus();
       } catch (error) {
         console.error("Erreur :", error);
         this.error = true;
@@ -597,7 +594,7 @@
   try {
     const response = await axios.get(`/api/activites/${this.activiteId}/session`);
     console.log('Session associée :', response.data);
-    this.isSession = response.data.session.etat === 'Clôturé';
+    this.isSession = false;
   } catch (error) {
     console.error('Erreur lors de la récupération de la session :', error);
     return null;
@@ -830,14 +827,38 @@
         this.isPointFocal=this.userInfo.role === 'Point-Focale';
         this.isPlanificateur=this.userInfo.role === 'Planificateur';
         this.isAdmin = this.userInfo.role === 'Administrateur';
-        this.isInvite = this.userInfo.role === 'Ordonnateur';
-        if (this.activite && this.activite.structure_id && this.userInfo.structure_id !== this.activite.structure_id) {
-            this.isInvite = true;
-        }
+        this.updateInviteStatus();
       } catch (error) {
         this.showAlert('Erreur lors de la récupération des informations utilisateur :', false);
       }
     },
+
+      updateInviteStatus() {
+        // Ordonnateur reste en lecture seule par règle métier.
+        if (this.userInfo && this.userInfo.role === 'Ordonnateur') {
+          this.isInvite = true;
+          return;
+        }
+
+        // Tant que les données ne sont pas chargées, ne pas forcer le mode invité.
+        if (!this.userInfo || !this.activite) {
+          this.isInvite = false;
+          return;
+        }
+
+        const userStructureId = Number(
+          this.userInfo.structure_id ?? this.userInfo.structure?.id
+        );
+        const activiteStructureId = Number(this.activite.structure_id);
+
+        const partenaires = this.activite.structures_partenaires || this.activite.structuresPartenaires || [];
+        const isPartenaire = Array.isArray(partenaires)
+          ? partenaires.some((s) => Number(s.id) === userStructureId)
+          : false;
+
+        const isStructureProprietaire = userStructureId === activiteStructureId;
+        this.isInvite = !(isStructureProprietaire || isPartenaire);
+      },
 
       showAlert(message, isSuccess = true) {
         this.alertMessage = message;

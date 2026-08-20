@@ -44,12 +44,8 @@ class AuthController extends Controller
 
             // Log pour authentification réussie
             Log::info('Utilisateur authentifié', ['user_id' => $user->id]);
-            $mois = Carbon::now()->format('m'); // Mois actuel
-            $annee = Carbon::now()->format('Y'); // Année actuelle
-            // Générer un mot de passe aléatoire
-            $motDePasse = 'Gpaujkz'.$mois.$annee;
-            // Vérification si le mot de passe est le mot de passe par défaut
-            if (Hash::check($motDePasse , $user->password)) {
+            // Vérification si le mot de passe est le mot de passe par défaut (email du compte)
+            if (Hash::check($user->email, $user->password)) {
                 Log::info('Mot de passe par défaut', ['user_id' => $user->id]);
                 return response()->json([
                     'message' => 'Mot de passe par défaut. Veuillez changer votre mot de passe.',
@@ -87,22 +83,27 @@ class AuthController extends Controller
     {
         // Validation des champs
         $request->validate([
-            'current_password' => 'required|string|min:8',
             'new_password' => 'required|string|min:8|confirmed',
         ]);
 
         // Récupérer l'utilisateur connecté via Sanctum
         $user = $request->user();
 
-        // Vérifier que l'ancien mot de passe est correct
-        if (!Hash::check($request->current_password, $user->password)) {
-            return response()->json(['message' => 'Mot de passe actuel incorrect.'], 403);
-        }
-
         // Mettre à jour le mot de passe
         $user->password = Hash::make($request->new_password);
         $user->save();
-        return response()->json(['message' => 'Mot de passe changé avec succès. Vous avez été déconnecté.', 'redirect' => '/admin'], 200);
+
+        // Déconnexion forcée après changement du mot de passe.
+        if (Auth::guard('web')->check()) {
+            Auth::guard('web')->logout();
+        }
+        if (method_exists($user, 'tokens')) {
+            $user->tokens()->delete();
+        }
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json(['message' => 'Mot de passe changé avec succès. Veuillez vous reconnecter.', 'redirect' => '/login'], 200);
     }
 
     /**

@@ -8,7 +8,7 @@
     />
     <!-- Header avec bouton d'export et Filtres -->
     <div class="print:hidden flex justify-between items-center w-full max-w-[99%] mx-auto mb-4 px-4 sticky z-20 bg-white/80 backdrop-blur-md py-4 rounded-xl border border-slate-100 shadow-sm transition-all hover:bg-white text-emerald-900" :class="standalone ? 'top-12' : 'top-0'">
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-4 flex-wrap">
         <!-- Sélecteur de Structure Premium -->
         <div class="relative group min-w-[300px]">
           <label class="absolute -top-2 left-3 bg-white px-1 text-[10px] font-black text-indigo-500 uppercase tracking-widest z-10 transition-all group-focus-within:text-indigo-600">Filtrer par Structure</label>
@@ -24,6 +24,25 @@
           </select>
           <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
             <i class="fas fa-chevron-down text-[10px]"></i>
+          </div>
+        </div>
+
+        <!-- Sélecteur de Trimestre -->
+        <div class="relative group min-w-[180px]">
+          <label class="absolute -top-2 left-3 bg-white px-1 text-[10px] font-black text-indigo-500 uppercase tracking-widest z-10 transition-all group-focus-within:text-indigo-600">Filtrer par Trimestre</label>
+          <select
+            v-model="selectedTrimestre"
+            @change="redirectToDedicatedTrimestriel"
+            class="w-full bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all appearance-none cursor-pointer"
+          >
+            <option value="">Tous les trimestres</option>
+            <option value="1">T1</option>
+            <option value="2">T2</option>
+            <option value="3">T3</option>
+            <option value="4">T4</option>
+          </select>
+          <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+            <i class="fas fa-calendar-alt text-[10px]"></i>
           </div>
         </div>
       </div>
@@ -252,38 +271,35 @@
             </template>
           </tbody>
 
-          <!-- PIED DE TABLEAU : RÉCAPITULATIF GLOBAL -->
-          <tfoot>
-            <tr style="background:#1e293b; border-top: 2px solid #1e293b;">
-              <td colspan="13" style="padding: 16px 32px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; max-width:700px; margin-left:auto;">
-                  <!-- Dépenses -->
-                  <div style="display:flex; align-items:center; gap:14px;">
-                    <div style="text-align:right;">
-                      <p style="font-size:9px; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; margin:0 0 2px;">Dépenses Réalisées</p>
-                      <p style="font-size:9px; color:#64748b; font-style:italic; margin:0;">Consolidation annuelle</p>
-                    </div>
-                    <div style="width:1px; height:32px; background:#334155;"></div>
-                    <div style="font-size:22px; font-weight:900; color:#f1f5f9; font-variant-numeric:tabular-nums; letter-spacing:-0.02em;">
-                      {{ formatNumber(calculerSommeActual()) }} <span style="font-size:10px; font-weight:600; color:#64748b;">FCFA</span>
-                    </div>
-                  </div>
-                  <!-- Performance -->
-                  <div style="display:flex; align-items:center; gap:14px;">
-                    <div style="text-align:right;">
-                      <p style="font-size:9px; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; margin:0 0 2px;">Performance Globale</p>
-                      <p style="font-size:9px; color:#64748b; font-style:italic; margin:0;">Taux d'exécution physique</p>
-                    </div>
-                    <div style="width:1px; height:32px; background:#334155;"></div>
-                    <div :style="`font-size:22px; font-weight:900; font-variant-numeric:tabular-nums; color:${calculerTauxExecutionGlobal() < 50 ? '#fca5a5' : '#86efac'};`">
-                      {{ calculerTauxExecutionGlobal() }}%
-                    </div>
-                  </div>
-                </div>
-              </td>
-            </tr>
-          </tfoot>
         </table>
+
+        <!-- RÉCAPITULATIF GLOBAL (hors tableau pour éviter la répétition par page PDF) -->
+        <div style="background:#1e293b; border-top:2px solid #1e293b; padding:16px 32px; margin-top:0; break-inside:avoid; page-break-inside:avoid;">
+          <div style="display:flex; justify-content:space-between; align-items:center; max-width:700px; margin-left:auto;">
+            <!-- Dépenses -->
+            <div style="display:flex; align-items:center; gap:14px;">
+              <div style="text-align:right;">
+                <p style="font-size:9px; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; margin:0 0 2px;">Dépenses Réalisées</p>
+                <p style="font-size:9px; color:#64748b; font-style:italic; margin:0;">Consolidation annuelle</p>
+              </div>
+              <div style="width:1px; height:32px; background:#334155;"></div>
+              <div style="font-size:22px; font-weight:900; color:#f1f5f9; font-variant-numeric:tabular-nums; letter-spacing:-0.02em;">
+                {{ formatNumber(calculerSommeActual()) }} <span style="font-size:10px; font-weight:600; color:#64748b;">FCFA</span>
+              </div>
+            </div>
+            <!-- Performance -->
+            <div style="display:flex; align-items:center; gap:14px;">
+              <div style="text-align:right;">
+                <p style="font-size:9px; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; margin:0 0 2px;">Performance Globale</p>
+                <p style="font-size:9px; color:#64748b; font-style:italic; margin:0;">Taux d'exécution physique</p>
+              </div>
+              <div style="width:1px; height:32px; background:#334155;"></div>
+              <div :style="`font-size:22px; font-weight:900; font-variant-numeric:tabular-nums; color:${calculerTauxExecutionGlobal() < 50 ? '#fca5a5' : '#86efac'};`">
+                {{ calculerTauxExecutionGlobal() }}%
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Bloc de Signature (Uniquement pour le PDF) -->
         <SignatureBlock :data="signatureData" />
@@ -326,6 +342,7 @@ export default {
       csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
       structures: [],
       selectedStructureId: "",
+      selectedTrimestre: "",
       currentUser: null,
     };
   },
@@ -337,7 +354,7 @@ export default {
     },
     filteredAxes() {
       if (!this.selectedStructureId) return this.axes;
-      
+
       return this.axes.map(axe => {
         const filteredObjectifs = axe.objectifs.map(obj => {
           const filteredEffets = obj.effets.map(eff => {
@@ -345,10 +362,13 @@ export default {
                 act.structure_id == this.selectedStructureId || 
                 (act.structure && act.structure.id == this.selectedStructureId)
               );
+
               return { ...eff, activites: filteredActivites };
             }).filter(eff => eff.activites.length > 0);
+
           return { ...obj, effets: filteredEffets };
         }).filter(obj => obj.effets.length > 0);
+
         return { ...axe, objectifs: filteredObjectifs };
       }).filter(axe => axe.objectifs.length > 0);
     }
@@ -367,6 +387,21 @@ export default {
     this.initReport();
   },
   methods: {
+    redirectToDedicatedTrimestriel() {
+      const routeByTrimester = {
+        "1": "GestoinRapportTrimestriel1",
+        "2": "GestoinRapportTrimestriel2",
+        "3": "GestoinRapportTrimestriel3",
+        "4": "GestoinRapportTrimestriel4",
+      };
+
+      const targetRouteName = routeByTrimester[this.selectedTrimestre];
+      if (!targetRouteName) {
+        return;
+      }
+
+      this.$router.push({ name: targetRouteName });
+    },
     async initReport() {
         await this.fetchCurrentUser();
         this.fetchObjectifs();
@@ -617,4 +652,5 @@ export default {
   background-color: #cbd5e1;
   border-radius: 20px;
 }
+
 </style>

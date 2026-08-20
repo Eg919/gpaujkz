@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Structure extends Model implements \OwenIt\Auditing\Contracts\Auditable
+class Structure extends Model
 {
-    use HasFactory, \OwenIt\Auditing\Auditable;
+    use HasFactory;
     /**
      * Le nom de la table associée au modèle.
      *

@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\DB;
 
 class StatsController extends Controller
 {
+    private function excludedStructureSigles(): array
+    {
+        return ['GPA'];
+    }
+
     /**
      * Récupère les statistiques globales pour le tableau de bord (Admin)
      */
@@ -48,6 +53,7 @@ class StatsController extends Controller
             ->join('activites', 'structures.id', '=', 'activites.structure_id')
             ->where('activites.sessions_id', $session->id)
             ->where('activites.confirmation_presi', 1)
+            ->whereNotIn(DB::raw('UPPER(structures.sigle)'), $this->excludedStructureSigles())
             ->groupBy('structures.id', 'structures.sigle')
             ->orderByDesc('activites_count')
             ->limit(5)
@@ -58,6 +64,7 @@ class StatsController extends Controller
             ->join('activites', 'structures.id', '=', 'activites.structure_id')
             ->where('activites.sessions_id', $session->id)
             ->where('activites.etat_activite', 'Terminée')
+            ->whereNotIn(DB::raw('UPPER(structures.sigle)'), $this->excludedStructureSigles())
             ->groupBy('structures.id', 'structures.sigle')
             ->orderByDesc('finished_count')
             ->limit(5)
@@ -161,13 +168,14 @@ class StatsController extends Controller
     public function getDsiStats()
     {
         $userCount = User::count();
-        $structureCount = Structure::count();
+        $structureCount = Structure::whereNotIn(DB::raw('UPPER(sigle)'), $this->excludedStructureSigles())->count();
         
         $roleDistribution = User::select('role', DB::raw('count(*) as total'))
             ->groupBy('role')
             ->get();
 
         $structureTypes = Structure::select('etat', DB::raw('count(*) as total'))
+            ->whereNotIn(DB::raw('UPPER(sigle)'), $this->excludedStructureSigles())
             ->groupBy('etat')
             ->get();
 

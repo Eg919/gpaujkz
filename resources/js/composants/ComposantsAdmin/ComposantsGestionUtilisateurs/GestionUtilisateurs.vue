@@ -302,9 +302,9 @@ export default {
       if (!confirm('Réinitialiser le mot de passe ?')) return;
       try {
         const response = await axios.put(`/api/utilisateurs/${userId}/reset-password`, {});
-        if (response.status === 200) this.showAlert('Réinitialisé avec succès!', true);
+        if (response.status === 200) this.showAlert(response.data?.message || 'Réinitialisé avec succès!', true);
       } catch (error) {
-        this.showAlert('Erreur de réinitialisation.', false);
+        this.showAlert(error.response?.data?.message || 'Erreur de réinitialisation.', false);
       }
     },
     showAlert(message, success) {

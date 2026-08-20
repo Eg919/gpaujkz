@@ -1,6 +1,6 @@
 <template>
   <!-- Formulaire de changement de mot de passe -->
-  <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+  <div class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-50">
     <div 
       class="bg-white p-4 sm:p-6 rounded shadow-md w-full max-w-md max-h-[calc(100vh-4rem)] overflow-y-auto relative"
     >
@@ -18,23 +18,6 @@
 
       <!-- Formulaire -->
       <form @submit.prevent="submitForm">
-        <!-- Champ de saisie du mot de passe actuel -->
-        <div class="mb-4">
-          <label 
-            class="block text-sm sm:text-base text-gray-700 font-medium mb-2" 
-            for="current_password"
-          >
-            Mot de passe actuel
-          </label>
-          <input
-            v-model="form.current_password"
-            type="password"
-            id="current_password"
-            class="w-full px-3 sm:px-4 py-2 border rounded-lg text-sm sm:text-base"
-            required
-          />
-        </div>
-
         <!-- Champ de saisie du nouveau mot de passe -->
         <div class="mb-4">
           <label 
@@ -82,7 +65,8 @@
       <!-- Message de confirmation -->
       <p 
         v-if="message" 
-        class="mt-4 text-center text-green-500 text-sm sm:text-base"
+        class="mt-4 text-center text-sm sm:text-base"
+        :class="messageType === 'error' ? 'text-red-600' : 'text-green-600'"
       >
         {{ message }}
       </p>
@@ -97,11 +81,11 @@ export default {
   data() {
     return {
       form: {
-        current_password: "",
         new_password: "",
         new_password_confirmation: "",
       },
       message: "",
+      messageType: "success",
       loading: false,
     };
   },
@@ -109,14 +93,20 @@ export default {
     async submitForm() {
       if (this.loading) return;
       this.loading = true;
+      this.message = "";
       try {
         const response = await axios.post("/api/change-password", this.form);
         this.message = response.data.message;
+        this.messageType = "success";
         setTimeout(() => {
-          this.$router.push("/admin");
+          this.$router.push(response.data.redirect || "/login");
         }, 2000);
       } catch (error) {
-        this.message = error.response.data.message || "Une erreur est survenue.";
+        const apiMessage = error?.response?.data?.message;
+        this.message = (apiMessage && apiMessage !== 'Server Error')
+          ? apiMessage
+          : "Impossible de changer le mot de passe pour le moment. Veuillez réessayer.";
+        this.messageType = "error";
       } finally {
         this.loading = false;
       }

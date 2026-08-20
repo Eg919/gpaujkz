@@ -4,9 +4,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PlanStrategique extends Model implements \OwenIt\Auditing\Contracts\Auditable
+class PlanStrategique extends Model
 {
-    use HasFactory, \OwenIt\Auditing\Auditable;
+    use HasFactory;
 
     protected $table = 'plans_strategiques';
     protected $fillable = ['titre', 'debut', 'fin', 'etat'];

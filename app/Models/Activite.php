@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Activite extends Model implements \OwenIt\Auditing\Contracts\Auditable
+class Activite extends Model
 {
-    use HasFactory, \OwenIt\Auditing\Auditable;
+    use HasFactory;
 
     // Définir les colonnes qui peuvent être assignées en masse (mass assignable)
     protected $fillable = [

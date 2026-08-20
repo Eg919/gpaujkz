@@ -276,8 +276,8 @@ export default {
         return;
       }
       try {
-        // CHANGEMENT ICI : Utilisation de l'endpoint /st pour la structure
-        const response = await axios.get(`/api/activites/session/${sessionsId}/st`);
+        // Planification: récupérer les activités de la structure sans contrainte de validation.
+        const response = await axios.get('/api/activites/structure-session');
         this.activites = response.data || [];
       } catch (error) {
         console.error('Erreur lors de la récupération des activités :', error);

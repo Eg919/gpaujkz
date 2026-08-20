@@ -8,10 +8,20 @@ use Illuminate\Support\Facades\Log;
 
 class StructureController extends Controller
 {
+    private function visibleStructuresQuery()
+    {
+        return Structure::query()
+            ->where('sigle', '!=', '')
+            ->whereRaw("UPPER(sigle) <> 'GPA'")
+            ->where(function ($q) {
+                $q->whereNull('masque')->orWhere('masque', '!=', 1);
+            });
+    }
+
     private function verifyIsAdmin()
     {
         $user = \Illuminate\Support\Facades\Auth::user();
-        if (!$user || !in_array($user->role, ['Administrateur', 'Ordonnateur'])) {
+        if (!$user || !in_array($user->role, ['Administrateur', 'Administrateur_DSI', 'Ordonnateur'])) {
             throw new \Exception("Accès non autorisé : vous n'avez pas les droits d'administration pour cette action.");
         }
     }
@@ -20,10 +30,9 @@ class StructureController extends Controller
      */
     public function index()
 {
-    // Remplacez 'created_at' par le champ selon lequel vous voulez trier les structures
-    $structures = Structure::where('sigle', '!=', '') // Exclure GPAADMIN
-    ->orderBy('id', 'desc')
-    ->get();
+    $structures = $this->visibleStructuresQuery()
+        ->orderBy('id', 'desc')
+        ->get();
 
     return response()->json($structures);
 }
@@ -129,7 +138,7 @@ class StructureController extends Controller
      */
     public function count()
     {
-        $structureCount = Structure::count(); // Compte le nombre total de structures
+        $structureCount = $this->visibleStructuresQuery()->count();
         $structureCount =($structureCount);
         return response()->json(['count' => $structureCount], 200);
     }

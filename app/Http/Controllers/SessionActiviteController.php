@@ -208,8 +208,17 @@ class SessionActiviteController extends Controller
         $activite = Activite::with('session')->find($activiteId);
 
         if ($activite && $activite->session) {
+            $sessionRetour = $activite->session;
+
+            // Si l'activité est reconduite sur l'année d'une session ouverte,
+            // on considère cette session ouverte comme session effective.
+            $sessionEnCours = SessionActivite::where('etat', 'Ouvert')->first();
+            if ($sessionEnCours && (int) $activite->reconduir === (int) $sessionEnCours->annee) {
+                $sessionRetour = $sessionEnCours;
+            }
+
             return response()->json([
-                'session' => $activite->session,
+                'session' => $sessionRetour,
             ]);
         } else {
             return response()->json([

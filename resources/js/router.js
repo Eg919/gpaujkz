@@ -221,28 +221,37 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
-  if (to.meta.requiresAuth) {
-    try {
-      const response = await axios.get('/api/user-info');
-      const user = response.data;
-      
+  try {
+    const response = await axios.get('/api/user-info');
+    const user = response.data;
+
+    // Forcer le changement de mot de passe en première connexion / après reset.
+    if (user.must_change_password && to.path !== '/changer-mot-de-passe') {
+      return next('/changer-mot-de-passe');
+    }
+
+    if (!user.must_change_password && to.path === '/changer-mot-de-passe') {
+      return next('/adminstat');
+    }
+
+    if (to.meta.requiresAuth) {
       if (to.meta.role) {
         const allowedRoles = Array.isArray(to.meta.role) ? to.meta.role : [to.meta.role];
         if (!allowedRoles.includes(user.role)) {
-          // Si le rôle n'est pas autorisé, rediriger vers adminstat (tableau de bord)
           return next('/adminstat');
         }
       }
-      next();
-    } catch (error) {
-      // Non authentifié
-      if (to.path !== '/login') {
-        return next('/login');
-      } else {
-        next();
-      }
     }
-  } else {
+
+    if (to.path === '/login' && !user.must_change_password) {
+      return next('/adminstat');
+    }
+
+    next();
+  } catch (error) {
+    if (to.path !== '/login') {
+      return next('/login');
+    }
     next();
   }
 });

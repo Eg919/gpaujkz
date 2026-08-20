@@ -8,6 +8,7 @@ use App\Models\Activite;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use App\Models\SessionActivite;
 use App\Models\NotificationActivite;
 use App\Models\PieceJustificative;
@@ -23,9 +24,16 @@ class TacheController extends Controller
         $activite = Activite::find($activiteId);
         if (!$activite) return;
 
-        $session = SessionActivite::find($activite->sessions_id);
-        if ($session && $session->etat === 'Clôturé') {
-            throw new \Exception("Cette session est clôturée. Toute modification est interdite.");
+        $user = Auth::user();
+        if ($user && !in_array($user->role, ['Administrateur'])) {
+            $isOwnerStructure = (int) $activite->structure_id === (int) $user->structure_id;
+            $isPartnerStructure = $activite->structuresPartenaires()
+                ->where('structure_id', $user->structure_id)
+                ->exists();
+
+            if (!$isOwnerStructure && !$isPartnerStructure) {
+                throw new \Exception("Accès non autorisé : cette activité n'appartient pas à votre structure.");
+            }
         }
     }
 

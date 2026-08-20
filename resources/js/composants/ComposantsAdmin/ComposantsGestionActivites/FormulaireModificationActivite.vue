@@ -182,41 +182,9 @@
         </fieldset>
       </div>
 
-      <!-- Section Structure et Période -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- Structure -->
+      <!-- Section Périodes -->
+      <div class="grid grid-cols-1 gap-4">
         <fieldset class="border border-gray-300 px-4 rounded">
-          <legend class="text-base sm:text-lg font-bold px-2">Structures Partenaires</legend>
-          <div class="flex flex-col gap-2 mt-2 mb-2">
-            <input 
-              v-model="rechercheStructure" 
-              type="text" 
-              placeholder="Rechercher une structure..." 
-              class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400"
-            />
-            <div class="h-32 overflow-y-auto border border-gray-200 rounded p-2 bg-gray-50">
-              <label 
-                v-for="structure in structuresFiltrees" 
-                :key="structure.id" 
-                class="flex items-center space-x-2 mb-1 cursor-pointer hover:bg-gray-100 p-1 rounded"
-              >
-                <input 
-                  type="checkbox" 
-                  :value="structure.id" 
-                  v-model="formactivite.structures_partenaires_ids"
-                  class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-400 rounded"
-                />
-                <span class="text-sm font-medium text-gray-700">{{ structure.sigle }}</span>
-              </label>
-              <div v-if="structuresFiltrees.length === 0" class="text-xs text-gray-500 italic p-1">
-                Aucune structure trouvée.
-              </div>
-            </div>
-          </div>
-        </fieldset>
-
-        <!-- Périodes -->
-        <fieldset class="border border-gray-300 px-4  rounded">
           <legend class="text-base sm:text-lg font-bold px-2">Période</legend>
           <div class="grid grid-cols-1 sm:grid-cols-4 ga mt-4">
             <label v-for="(trimester, index) in trimestres" :key="index" class="inline-flex items-center">
@@ -294,8 +262,6 @@ export default {
       isSuccess: false,
       loading: false,
       isAdmin: false, // Statut de l'utilisateur connecté
-      rechercheStructure: '',
-      structures: [],
       ObjectifStrategique: [],
       effetAttendus: [],
       formactivite: {},
@@ -315,18 +281,7 @@ export default {
       ]
     };
   },
-  computed: {
-    structuresFiltrees() {
-      if (!this.rechercheStructure) {
-        return this.structures;
-      }
-      const terme = this.rechercheStructure.toLowerCase();
-      return this.structures.filter(s => 
-        (s.sigle && s.sigle.toLowerCase().includes(terme)) || 
-        (s.libelle_structure && s.libelle_structure.toLowerCase().includes(terme))
-      );
-    }
-  },
+  computed: {},
   methods: {
     async fetchObjectifs() {
       this.loading = true;
@@ -355,14 +310,6 @@ export default {
           this.effetAttendus = response.data;
         })
         .catch(error => console.error(error));
-      }
-    },
-    async fetchStructures() {
-      try {
-        const response = await axios.get('/api/structures');
-        this.structures = response.data;
-      } catch (error) {
-        console.error('Erreur lors de la récupération des structures:', error);
       }
     },
     async fetchDetails() {
@@ -504,7 +451,6 @@ async ModifierFormulaire() {
   },
   mounted() {
     this.fetchObjectifs();
-    this.fetchStructures();
     this.fetchSUserInfo();
     this.fetchDetails();
   }

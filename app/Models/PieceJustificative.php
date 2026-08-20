@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PieceJustificative extends Model implements \OwenIt\Auditing\Contracts\Auditable
+class PieceJustificative extends Model
 {
-    use HasFactory, \OwenIt\Auditing\Auditable;
+    use HasFactory;
 
     protected $table = 'pieces_justificatives';
 

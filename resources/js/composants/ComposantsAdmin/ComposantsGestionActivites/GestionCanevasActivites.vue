@@ -125,7 +125,7 @@
                 >
                   <span v-if="activite.reconduir" class="flex items-center gap-1"><i class="fas fa-redo text-[8px]"></i> Reconduit</span>
                   <span v-else>
-                    {{ (activite.etat_slection === 'Validé' && !activite.confirmation_presi) ? 'En attente' : (activite.etat_slection || 'En attente') }}
+                    {{ (activite.etat_slection === 'Validé' && !activite.confirmation_presi) ? 'En attente de confirmation' : (activite.etat_slection || 'En attente') }}
                   </span>
                 </div>
               </td>
@@ -138,6 +138,16 @@
                   >
                     <i class="fas fa-edit text-[10px]"></i>
                     <span class="text-[9px] font-black uppercase tracking-tighter">Modifier</span>
+                  </button>
+
+                  <button
+                    v-if="isActiviteProprietaire(activite)"
+                    @click.stop="accederFormulairePartenaires(activite)"
+                    :disabled="(activite.soumi && !isAdmin && !isChefService) || activite.etat_session === 'Clôturé'"
+                    class="flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 text-cyan-700 rounded hover:bg-cyan-50 hover:border-cyan-200 transition-all active:scale-95 shadow-sm disabled:opacity-30"
+                  >
+                    <i class="fas fa-handshake text-[10px]"></i>
+                    <span class="text-[9px] font-black uppercase tracking-tighter">Struct. partenaires</span>
                   </button>
                   
                   <button 
@@ -222,6 +232,13 @@
       @close="showFormulaireM = false"
       @soumettreFormulaire="fetchActivites"
     />
+
+    <FormulaireStructuresPartenaires
+      v-if="showFormulaireSP"
+      :activiteId="activiteAPartenaires"
+      @close="showFormulaireSP = false"
+      @soumettreFormulaire="fetchActivites"
+    />
   </div>
 </template>
 
@@ -229,12 +246,14 @@
 import axios from 'axios';
 import FormulaireCanevas from './FormulaireCanevas.vue';
 import FormulaireModificationActivite from './FormulaireModificationActivite.vue';
+import FormulaireStructuresPartenaires from './FormulaireStructuresPartenaires.vue';
 
 export default {
   name: 'GestionCanevasActivites',
   components: {
     FormulaireCanevas,
     FormulaireModificationActivite,
+    FormulaireStructuresPartenaires,
   },
   data() {
     return {
@@ -242,10 +261,12 @@ export default {
       activites: [],
       showFormulaire: false,
       showFormulaireM: false,
+      showFormulaireSP: false,
       searchQuery: '',
       alertMessage: '',
       isSuccess: false,
       activiteAModifier: null,
+      activiteAPartenaires: null,
       currentPage: 1,
       itemsPerPage: 7,
       file: null,
@@ -376,11 +397,31 @@ export default {
         return;
       }
       if (!activite.soumi || this.isAdmin || this.isChefService) {
+        this.showFormulaireSP = false;
+        this.activiteAPartenaires = null;
         this.activiteAModifier = activite.id;
         this.showFormulaireM = true;
       } else {
         this.showAlert('Cette activité ne peut pas être modifiée car elle est déjà soumise.', false);
       }
+    },
+    accederFormulairePartenaires(activite) {
+      if (activite.etat_session === 'Clôturé') {
+        this.showAlert('Cette session est clôturée. Toute modification est interdite.', false);
+        return;
+      }
+      if (!activite.soumi || this.isAdmin || this.isChefService) {
+        this.showFormulaireM = false;
+        this.activiteAModifier = null;
+        this.activiteAPartenaires = activite.id;
+        this.showFormulaireSP = true;
+      } else {
+        this.showAlert('Cette activité ne peut pas être modifiée car elle est déjà soumise.', false);
+      }
+    },
+    isActiviteProprietaire(activite) {
+      if (!this.userInfo || !this.userInfo.structure) return false;
+      return Number(activite.structure_id) === Number(this.userInfo.structure.id);
     },
    
     fetchActivites() {

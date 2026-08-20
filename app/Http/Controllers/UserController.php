@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Activite;
 use App\Models\User;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\NotificationActivite;
 use Illuminate\Support\Facades\Hash;
@@ -17,7 +16,7 @@ class UserController extends Controller
     private function verifyIsAdmin()
     {
         $user = Auth::user();
-        if (!$user || !in_array($user->role, ['Administrateur'])) {
+        if (!$user || !in_array($user->role, ['Administrateur', 'Administrateur_DSI'])) {
             abort(403, "Accès non autorisé : vous n'avez pas les droits d'administration pour cette action.");
         }
     }
@@ -56,6 +55,7 @@ class UserController extends Controller
         return response()->json([
             'role' => $user->role,
             'email' => $user->email,
+            'must_change_password' => Hash::check($user->email, $user->password),
             'structure' => $user->structure ? [
             'id' => $user->structure->id,
             'etat' => $user->etat,
@@ -90,8 +90,8 @@ class UserController extends Controller
             'structure_id.exists' => 'La structure sélectionnée n\'existe pas.'
         ]);
         
-        // Générer un mot de passe aléatoire sécurisé
-        $motDePasse = Str::random(16);
+        // Mot de passe par défaut: email du compte
+        $motDePasse = $validatedData['email'];
         try {
             DB::transaction(function () use ($validatedData, &$user, $motDePasse) {
                 // Créer l'User
@@ -107,7 +107,7 @@ class UserController extends Controller
 
             // Envoi d'e-mail en arrière-plan (ne bloque pas la réponse)
             try {
-                $messageContent = "Bonjour, bienvenue sur notre plateforme ! Veuillez réinitialiser votre mot de passe via le lien de connexion.";
+                $messageContent = "Bonjour, votre compte a été créé. Votre mot de passe par défaut est votre adresse email. Veuillez le changer dès votre connexion.";
                 EmailService::sendEmail($user->email, $messageContent);
             } catch (\Exception $mailException) {
                 Log::warning("Email non envoyé pour {$user->email} : {$mailException->getMessage()}");
@@ -174,18 +174,29 @@ class UserController extends Controller
             $this->verifyIsAdmin();
             $user = User::findOrFail($id);
 
-            // Générer un mot de passe aléatoire sécurisé
-            $motDePasse = Str::random(16);
+            // Mot de passe par défaut après réinitialisation: email du compte
+            $motDePasse = $user->email;
             $user->password = Hash::make($motDePasse);
             $user->save();
 
-            $messageContent = "Bonjour, votre mot de passe a été réinitialisé. Veuillez utiliser le lien de connexion pour définir un nouveau mot de passe.";
-            EmailService::sendEmail($user->email, $messageContent);
+            $messageContent = "Bonjour, votre mot de passe a été réinitialisé. Votre mot de passe temporaire est votre adresse email. Veuillez le changer dès votre connexion.";
+            try {
+                EmailService::sendEmail($user->email, $messageContent);
+            } catch (\Exception $mailException) {
+                Log::warning("Mot de passe réinitialisé mais email non envoyé pour {$user->email} : {$mailException->getMessage()}");
+                return response()->json([
+                    'message' => 'Mot de passe réinitialisé, mais l\'email n\'a pas pu être envoyé.',
+                ], 200);
+            }
+
             return response()->json([
                 'message' => 'Mot de passe réinitialisé avec succès.',
             ], 200);
             // Envoi d'un e-mail à l'utilisateur
-            
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            return response()->json([
+                'message' => $e->getMessage() ?: 'Accès non autorisé.',
+            ], $e->getStatusCode());
         } catch (\Exception $e) {
             Log::error("Erreur lors de la réinitialisation du mot de passe : {$e->getMessage()}");
             return response()->json([

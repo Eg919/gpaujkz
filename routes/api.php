@@ -144,6 +144,7 @@ Route::post('/login', [AuthController::class, 'login']);
         Route::get('/activites-detaille/{id}', [ActiviteController::class, 'ActiviteDetailles']);
         Route::put('/activites/{id}/reconduire', [ActiviteController::class, 'recomduireActivite']);
         Route::put('activites/{activiteId}/modification', [ActiviteController::class, 'update']);
+        Route::put('/activites/{id}/structures-partenaires', [ActiviteController::class, 'updateStructuresPartenaires']);
         Route::delete('/activites/{id}/supprimer', [ActiviteController::class, 'supprimerActivite']);
         Route::put('/taches/{id}', [TacheController::class, 'modifierTache']);
         Route::post('/tachesEtat/{id}', [TacheController::class, 'modifierTacheEtat']);

@@ -4,9 +4,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class EffetAttendu extends Model implements \OwenIt\Auditing\Contracts\Auditable
+class EffetAttendu extends Model
 {
-    use HasFactory, \OwenIt\Auditing\Auditable;
+    use HasFactory;
     protected $table = 'effets_attendus';
 
     protected $fillable = ['libelle', 'objectif_strategique_id'];
